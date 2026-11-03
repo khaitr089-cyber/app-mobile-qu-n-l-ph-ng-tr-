@@ -5,6 +5,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
@@ -12,7 +14,8 @@ import java.util.List;
 
 public class QuanLyPhong extends AppCompatActivity {
 
-    TextInputEditText edtMaPhong, edtTenPhong, edtGiaThue, edtTrangThai;
+    TextInputEditText edtMaPhong, edtGiaThue;
+    AutoCompleteTextView dropdownLoaiPhong, dropdownTrangThai;
     Button btnThemPhong, btnSuaPhong, btnXoaPhong, btnLamMoiPhong, btnQuayLaiPhong;
     RecyclerView recyclerDanhSachPhong;
 
@@ -29,9 +32,9 @@ public class QuanLyPhong extends AppCompatActivity {
 
         // Ánh xạ các view
         edtMaPhong = findViewById(R.id.edtMaPhong);
-        edtTenPhong = findViewById(R.id.edtTenPhong);
+        dropdownLoaiPhong = findViewById(R.id.dropdownLoaiPhong);
         edtGiaThue = findViewById(R.id.edtGiaThue);
-        edtTrangThai = findViewById(R.id.edtTrangThai);
+        dropdownTrangThai = findViewById(R.id.dropdownTrangThai);
 
         btnThemPhong = findViewById(R.id.btnThemPhong);
         btnSuaPhong = findViewById(R.id.btnSuaPhong);
@@ -39,6 +42,16 @@ public class QuanLyPhong extends AppCompatActivity {
         btnLamMoiPhong = findViewById(R.id.btnLamMoiPhong);
         btnQuayLaiPhong = findViewById(R.id.btnQuayLaiPhong);
         recyclerDanhSachPhong = findViewById(R.id.recyclerDanhSachPhong);
+
+        // Thiết lập dữ liệu cho Dropdown Loại Phòng (Phòng đơn, Phòng đôi, Studio)
+        String[] loaiPhongArray = new String[]{"Phòng đơn", "Phòng đôi", "Studio"};
+        ArrayAdapter<String> adapterLoaiPhong = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, loaiPhongArray);
+        dropdownLoaiPhong.setAdapter(adapterLoaiPhong);
+
+        // Thiết lập dữ liệu cho Dropdown Trạng Thái (Còn trống, Đang thuê)
+        String[] trangThaiArray = new String[]{"Còn trống", "Đang thuê"};
+        ArrayAdapter<String> adapterTrangThai = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, trangThaiArray);
+        dropdownTrangThai.setAdapter(adapterTrangThai);
 
         // Load danh sách phòng từ SQLite
         loadDanhSachPhong();
@@ -48,12 +61,12 @@ public class QuanLyPhong extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String ma = edtMaPhong.getText().toString().trim();
-                String ten = edtTenPhong.getText().toString().trim();
+                String ten = dropdownLoaiPhong.getText().toString().trim();
                 String gia = edtGiaThue.getText().toString().trim();
-                String tt = edtTrangThai.getText().toString().trim();
+                String tt = dropdownTrangThai.getText().toString().trim();
 
-                if (ma.isEmpty() || ten.isEmpty() || gia.isEmpty() || tt.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
+                if (ma.isEmpty() || gia.isEmpty()) {
+                    Toast.makeText(QuanLyPhong.this, "Vui lòng nhập mã phòng và giá thuê!", Toast.LENGTH_SHORT).show();
                 } else {
                     boolean check = db.themPhong(ma, ten, gia, tt);
                     if (check) {
@@ -72,12 +85,12 @@ public class QuanLyPhong extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String ma = edtMaPhong.getText().toString().trim();
-                String ten = edtTenPhong.getText().toString().trim();
+                String ten = dropdownLoaiPhong.getText().toString().trim();
                 String gia = edtGiaThue.getText().toString().trim();
-                String tt = edtTrangThai.getText().toString().trim();
+                String tt = dropdownTrangThai.getText().toString().trim();
 
                 if (ma.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng chọn hoặc nhập mã phòng cần sửa!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần sửa từ danh sách!", Toast.LENGTH_SHORT).show();
                 } else {
                     boolean check = db.suaPhong(ma, ten, gia, tt);
                     if (check) {
@@ -85,7 +98,7 @@ public class QuanLyPhong extends AppCompatActivity {
                         loadDanhSachPhong();
                         lamMoiForm();
                     } else {
-                        Toast.makeText(QuanLyPhong.this, "Sửa thất bại (Không tìm thấy mã phòng)!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(QuanLyPhong.this, "Sửa thất bại!", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -97,7 +110,7 @@ public class QuanLyPhong extends AppCompatActivity {
             public void onClick(View v) {
                 String ma = edtMaPhong.getText().toString().trim();
                 if (ma.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng nhập hoặc chọn mã phòng cần xóa!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
                 } else {
                     boolean check = db.xoaPhong(ma);
                     if (check) {
@@ -105,7 +118,7 @@ public class QuanLyPhong extends AppCompatActivity {
                         loadDanhSachPhong();
                         lamMoiForm();
                     } else {
-                        Toast.makeText(QuanLyPhong.this, "Xóa thất bại (Không tìm thấy mã phòng)!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(QuanLyPhong.this, "Xóa thất bại!", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -129,31 +142,28 @@ public class QuanLyPhong extends AppCompatActivity {
         });
     }
 
-    // Hàm load danh sách phòng từ SQLite lên RecyclerView
     private void loadDanhSachPhong() {
         listPhong = db.getAllPhong();
         phongAdapter = new PhongAdapter(this, listPhong, new PhongAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(ModelPhong phong) {
-                // Khi click vào 1 item trên danh sách, đổ dữ liệu lên form để sửa/xóa
                 edtMaPhong.setText(phong.getMaPhong());
-                edtMaPhong.setEnabled(false); // Không cho sửa mã phòng khi đang chỉnh sửa
-                edtTenPhong.setText(phong.getTenPhong());
+                edtMaPhong.setEnabled(false);
+                dropdownLoaiPhong.setText(phong.getTenPhong(), false);
                 edtGiaThue.setText(phong.getGiaThue());
-                edtTrangThai.setText(phong.getTrangThai());
+                dropdownTrangThai.setText(phong.getTrangThai(), false);
             }
         });
         recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
         recyclerDanhSachPhong.setAdapter(phongAdapter);
     }
 
-    // Hàm làm mới form nhập liệu
     private void lamMoiForm() {
         edtMaPhong.setText("");
-        edtMaPhong.setEnabled(true); // Cho phép nhập lại mã phòng khi thêm mới
-        edtTenPhong.setText("");
+        edtMaPhong.setEnabled(true);
+        dropdownLoaiPhong.setText("Phòng đơn", false);
         edtGiaThue.setText("");
-        edtTrangThai.setText("");
+dropdownTrangThai.setText("Còn trống", false);
         edtMaPhong.requestFocus();
     }
 }
