@@ -55,6 +55,10 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+
+
+
+
     // --- CÁC HÀM XỬ LÝ NGƯỜI DÙNG ---
     public boolean dangnhap(String taiKhoan, String matKhau) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -128,6 +132,9 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return rows > 0;
     }
 
+
+
+    //list hiển thị
     public List<ModelPhong> getAllPhong() {
         List<ModelPhong> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -146,7 +153,14 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- CÁC HÀM XỬ LÝ NGƯỜI THUÊ (CRUD) ---
+
+
+
+
+
+
+
+    // --- CÁC HÀM XỬ LÝ NGƯỜI THUÊ ---
     public boolean themNguoiThue(String hoTen, String sdt, String cccd, String phongThue, String queQuan) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -179,6 +193,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return rows > 0;
     }
 
+
+    // list hiển thị người thuê
     public List<ModelNguoiThue> getAllNguoiThue() {
         List<ModelNguoiThue> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();

@@ -165,6 +165,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         });
     }
 
+
     // --- HÀM NẠP DANH SÁCH PHÒNG CÒN TRỐNG VÀO DROPDOWN ---
     private void loadDanhSachPhongTrong() {
         List<ModelPhong> allPhong = db.getAllPhong();
