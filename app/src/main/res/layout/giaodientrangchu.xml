@@ -138,11 +138,14 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <ImageView
+                    <ImageButton
+                        android:id="@+id/btnimgquanlyphongtro"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:src="@android:drawable/ic_dialog_map"
-                        app:tint="#FF9800" />
+                        app:tint="#FF9800"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Quản lý phòng"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -173,11 +176,14 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <ImageView
+                    <ImageButton
+                        android:id="@+id/btnimgnguoithue"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:src="@android:drawable/ic_menu_myplaces"
-                        app:tint="#4CAF50" />
+                        app:tint="#4CAF50"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Người thuê"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -208,11 +214,14 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <ImageView
+                    <ImageButton
+                        android:id="@+id/btnimghoadon"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:src="@android:drawable/ic_menu_agenda"
-                        app:tint="#2196F3" />
+                        app:tint="#2196F3"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Quản lý hóa đơn"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -243,11 +252,14 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <ImageView
+                    <ImageButton
+                        android:id="@+id/btnimgthongke"
                         android:layout_width="56dp"
                         android:layout_height="56dp"
                         android:src="@android:drawable/ic_menu_sort_by_size"
-                        app:tint="#9C27B0" />
+                        app:tint="#9C27B0"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Thống kê"/>
 
                     <TextView
                         android:layout_width="wrap_content"
