@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 public class ManHinhChinh extends AppCompatActivity {
 
@@ -36,7 +37,6 @@ public class ManHinhChinh extends AppCompatActivity {
         // Ánh xạ nút Đăng xuất
         btndangxuat = findViewById(R.id.btndangxuat);
 
-
         //-------------------------------------------------------------------------------------
         // 1. Sự kiện chuyển trang: Quản lý phòng trọ
         View.OnClickListener listenerQuanLyPhong = new View.OnClickListener() {
@@ -48,7 +48,6 @@ public class ManHinhChinh extends AppCompatActivity {
         };
         if (cvquanlyphongtro != null) cvquanlyphongtro.setOnClickListener(listenerQuanLyPhong);
         if (btnImgQuanLyPhong != null) btnImgQuanLyPhong.setOnClickListener(listenerQuanLyPhong);
-
 
         //-------------------------------------------------------------------------------------
         // 2. Sự kiện chuyển trang: Quản lý người thuê
@@ -62,8 +61,6 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlynguoithue != null) cvquanlynguoithue.setOnClickListener(listenerNguoiThue);
         if (btnImgNguoiThue != null) btnImgNguoiThue.setOnClickListener(listenerNguoiThue);
 
-
-
         //--------------------------------------------------------------------------------------
         // 3. Sự kiện chuyển trang: Quản lý hóa đơn
         View.OnClickListener listenerHoaDon = new View.OnClickListener() {
@@ -75,8 +72,6 @@ public class ManHinhChinh extends AppCompatActivity {
         };
         if (cvquanlyhoadon != null) cvquanlyhoadon.setOnClickListener(listenerHoaDon);
         if (btnImgHoaDon != null) btnImgHoaDon.setOnClickListener(listenerHoaDon);
-
-
 
         //----------------------------------------------------------------------------------
         // 4. Sự kiện chuyển trang: Báo cáo thống kê
@@ -90,7 +85,19 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-       //------------------------------------------------------------------------------------
-        
+        //------------------------------------------------------------------------------------
+        // 5. Sự kiện Đăng xuất
+        if (btndangxuat != null) {
+            btndangxuat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(ManHinhChinh.this, "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ManHinhChinh.this, ManHinhDangNhap.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+        }
     }
 }
