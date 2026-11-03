@@ -36,6 +36,8 @@ public class ManHinhChinh extends AppCompatActivity {
         // Ánh xạ nút Đăng xuất
         btndangxuat = findViewById(R.id.btndangxuat);
 
+
+        //-------------------------------------------------------------------------------------
         // 1. Sự kiện chuyển trang: Quản lý phòng trọ
         View.OnClickListener listenerQuanLyPhong = new View.OnClickListener() {
             @Override
@@ -47,6 +49,8 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlyphongtro != null) cvquanlyphongtro.setOnClickListener(listenerQuanLyPhong);
         if (btnImgQuanLyPhong != null) btnImgQuanLyPhong.setOnClickListener(listenerQuanLyPhong);
 
+
+        //-------------------------------------------------------------------------------------
         // 2. Sự kiện chuyển trang: Quản lý người thuê
         View.OnClickListener listenerNguoiThue = new View.OnClickListener() {
             @Override
@@ -58,6 +62,9 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlynguoithue != null) cvquanlynguoithue.setOnClickListener(listenerNguoiThue);
         if (btnImgNguoiThue != null) btnImgNguoiThue.setOnClickListener(listenerNguoiThue);
 
+
+
+        //--------------------------------------------------------------------------------------
         // 3. Sự kiện chuyển trang: Quản lý hóa đơn
         View.OnClickListener listenerHoaDon = new View.OnClickListener() {
             @Override
@@ -69,6 +76,9 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlyhoadon != null) cvquanlyhoadon.setOnClickListener(listenerHoaDon);
         if (btnImgHoaDon != null) btnImgHoaDon.setOnClickListener(listenerHoaDon);
 
+
+
+        //----------------------------------------------------------------------------------
         // 4. Sự kiện chuyển trang: Báo cáo thống kê
         View.OnClickListener listenerThongKe = new View.OnClickListener() {
             @Override
@@ -80,14 +90,8 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-        // 5. Sự kiện đăng xuất
-        if (btndangxuat != null) {
-            btndangxuat.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finish();
-                }
-            });
+       //------------------------------------------------------------------------------------
+
         }
     }
 }
