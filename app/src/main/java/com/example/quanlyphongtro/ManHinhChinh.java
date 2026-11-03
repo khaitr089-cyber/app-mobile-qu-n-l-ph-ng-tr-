@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class ManHinhChinh extends AppCompatActivity {
+    // code chuyển trang
 
     // Khai báo các view
     CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvthongke;
