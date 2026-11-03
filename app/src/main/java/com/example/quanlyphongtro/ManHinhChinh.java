@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 public class ManHinhChinh extends AppCompatActivity {
 
@@ -90,8 +91,19 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-       //------------------------------------------------------------------------------------
-
+        //------------------------------------------------------------------------------------
+        // 5. Sự kiện Đăng xuất
+        if (btndangxuat != null) {
+            btndangxuat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(ManHinhChinh.this, "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ManHinhChinh.this, ManHinhDangNhap.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
+            });
         }
     }
 }
