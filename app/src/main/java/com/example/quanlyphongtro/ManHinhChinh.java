@@ -91,7 +91,6 @@ public class ManHinhChinh extends AppCompatActivity {
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
        //------------------------------------------------------------------------------------
-
-        }
+        
     }
 }
