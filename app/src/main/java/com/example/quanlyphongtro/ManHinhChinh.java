@@ -11,11 +11,10 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class ManHinhChinh extends AppCompatActivity {
-    // code chuyển trang
 
     // Khai báo các view
-    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvthongke;
-    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgThongKe;
+    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvthongke;
+    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgThongKe;
     Button btndangxuat;
 
     @Override
@@ -27,19 +26,20 @@ public class ManHinhChinh extends AppCompatActivity {
         cvquanlyphongtro = findViewById(R.id.cvquanlyphongtro);
         cvquanlynguoithue = findViewById(R.id.cvquanlynguoithue);
         cvquanlyhoadon = findViewById(R.id.cvquanlyhoadon);
+        cvquanlyhopdong = findViewById(R.id.cvquanlyhopdong);
         cvthongke = findViewById(R.id.cvthongke);
 
         // Ánh xạ các ImageButton
         btnImgQuanLyPhong = findViewById(R.id.btnimgquanlyphongtro);
         btnImgNguoiThue = findViewById(R.id.btnimgnguoithue);
         btnImgHoaDon = findViewById(R.id.btnimghoadon);
+        btnImgHopDong = findViewById(R.id.btnimghopdong);
         btnImgThongKe = findViewById(R.id.btnimgthongke);
         
         // Ánh xạ nút Đăng xuất
         btndangxuat = findViewById(R.id.btndangxuat);
 
-        //-------------------------------------------------------------------------------------
-
+        // 1. Quản lý phòng trọ
         View.OnClickListener listenerQuanLyPhong = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -50,8 +50,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlyphongtro != null) cvquanlyphongtro.setOnClickListener(listenerQuanLyPhong);
         if (btnImgQuanLyPhong != null) btnImgQuanLyPhong.setOnClickListener(listenerQuanLyPhong);
 
-        //-------------------------------------------------------------------------------------
-        // 2. Sự kiện chuyển trang: Quản lý người thuê
+        // 2. Quản lý người thuê
         View.OnClickListener listenerNguoiThue = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,8 +61,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlynguoithue != null) cvquanlynguoithue.setOnClickListener(listenerNguoiThue);
         if (btnImgNguoiThue != null) btnImgNguoiThue.setOnClickListener(listenerNguoiThue);
 
-        //--------------------------------------------------------------------------------------
-
+        // 3. Quản lý hóa đơn
         View.OnClickListener listenerHoaDon = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,8 +72,18 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlyhoadon != null) cvquanlyhoadon.setOnClickListener(listenerHoaDon);
         if (btnImgHoaDon != null) btnImgHoaDon.setOnClickListener(listenerHoaDon);
 
-        //----------------------------------------------------------------------------------
+        // 4. Quản lý hợp đồng
+        View.OnClickListener listenerHopDong = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ManHinhChinh.this, QuanLyHopDong.class);
+                startActivity(intent);
+            }
+        };
+        if (cvquanlyhopdong != null) cvquanlyhopdong.setOnClickListener(listenerHopDong);
+        if (btnImgHopDong != null) btnImgHopDong.setOnClickListener(listenerHopDong);
 
+        // 5. Thống kê
         View.OnClickListener listenerThongKe = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -86,8 +94,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-        //------------------------------------------------------------------------------------
-
+        // 6. Đăng xuất
         if (btndangxuat != null) {
             btndangxuat.setOnClickListener(new View.OnClickListener() {
                 @Override
