@@ -5,12 +5,16 @@ public class ModelPhong {
     private String tenPhong;
     private String giaThue;
     private String trangThai;
+    private String tang;
+    private String dienTich;
 
-    public ModelPhong(String maPhong, String tenPhong, String giaThue, String trangThai) {
+    public ModelPhong(String maPhong, String tenPhong, String giaThue, String trangThai, String tang, String dienTich) {
         this.maPhong = maPhong;
         this.tenPhong = tenPhong;
         this.giaThue = giaThue;
         this.trangThai = trangThai;
+        this.tang = tang;
+        this.dienTich = dienTich;
     }
 
     public String getMaPhong() { return maPhong; }
@@ -24,4 +28,10 @@ public class ModelPhong {
 
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+
+    public String getTang() { return tang; }
+    public void setTang(String tang) { this.tang = tang; }
+
+    public String getDienTich() { return dienTich; }
+    public void setDienTich(String dienTich) { this.dienTich = dienTich; }
 }

@@ -42,6 +42,8 @@ public class PhongAdapter extends RecyclerView.Adapter<PhongAdapter.PhongViewHol
 
         holder.tvTenPhong.setText("Phòng " + phong.getMaPhong() + " - " + phong.getTenPhong());
         holder.tvGiaThue.setText("Giá: " + phong.getGiaThue() + " đ");
+        holder.tvTang.setText("Tầng: " + (phong.getTang() != null && !phong.getTang().isEmpty() ? phong.getTang() : "1"));
+        holder.tvDienTich.setText((phong.getDienTich() != null && !phong.getDienTich().isEmpty() ? phong.getDienTich() : "20") + " m²");
         holder.tvTrangThai.setText(" " + phong.getTrangThai() + " ");
 
         if (phong.getTrangThai().toLowerCase().contains("trống")) {
@@ -63,12 +65,14 @@ public class PhongAdapter extends RecyclerView.Adapter<PhongAdapter.PhongViewHol
     }
 
     public static class PhongViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTenPhong, tvGiaThue, tvTrangThai;
+        TextView tvTenPhong, tvGiaThue, tvTang, tvDienTich, tvTrangThai;
 
         public PhongViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTenPhong = itemView.findViewById(R.id.tvTenPhong);
             tvGiaThue = itemView.findViewById(R.id.tvGiaThue);
+            tvTang = itemView.findViewById(R.id.tvTang);
+            tvDienTich = itemView.findViewById(R.id.tvDienTich);
             tvTrangThai = itemView.findViewById(R.id.tvTrangThai);
         }
     }

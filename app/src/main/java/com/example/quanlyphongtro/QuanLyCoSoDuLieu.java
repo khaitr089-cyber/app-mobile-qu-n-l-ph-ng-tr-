@@ -14,7 +14,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7; // Tăng version lên 7
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -30,13 +30,15 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         db.execSQL(sqlUser);
         db.execSQL("INSERT INTO NguoiDung(tenDangNhap, matKhau) VALUES('admin', '123456')");
 
-        // 2. Tạo bảng Phòng Trọ
+        // 2. Tạo bảng Phòng Trọ (Không còn soNguoiToiDa)
         String sqlPhong = "CREATE TABLE PhongTro (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maPhong TEXT UNIQUE, " +
                 "tenPhong TEXT, " +
                 "giaThue INTEGER, " +
-                "trangThai TEXT)";
+                "trangThai TEXT, " +
+                "tang TEXT, " +
+                "dienTich TEXT)";
         db.execSQL(sqlPhong);
 
         // 3. Tạo bảng Người Thuê
@@ -90,8 +92,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // --- CÁC HÀM XỬ LÝ PHÒNG TRỌ ---
-    public boolean themPhong(String maPhong, String tenPhong, String giaThueStr, String trangThai) {
+    // --- CÁC HÀM XỬ LÝ PHÒNG TRỌ (CRUD) ---
+    public boolean themPhong(String maPhong, String tenPhong, String giaThueStr, String trangThai, String tang, String dienTich) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("maPhong", maPhong);
@@ -103,12 +105,14 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
             values.put("giaThue", 0);
         }
         values.put("trangThai", trangThai);
+        values.put("tang", tang);
+        values.put("dienTich", dienTich);
         long result = db.insert("PhongTro", null, values);
         db.close();
         return result != -1;
     }
 
-    public boolean suaPhong(String maPhong, String tenPhong, String giaThueStr, String trangThai) {
+    public boolean suaPhong(String maPhong, String tenPhong, String giaThueStr, String trangThai, String tang, String dienTich) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("tenPhong", tenPhong);
@@ -119,6 +123,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
             values.put("giaThue", 0);
         }
         values.put("trangThai", trangThai);
+        values.put("tang", tang);
+        values.put("dienTich", dienTich);
         int rows = db.update("PhongTro", values, "maPhong = ?", new String[]{maPhong});
         db.close();
         return rows > 0;
@@ -150,7 +156,29 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 String ten = cursor.getString(cursor.getColumnIndexOrThrow("tenPhong"));
                 int gia = cursor.getInt(cursor.getColumnIndexOrThrow("giaThue"));
                 String tt = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
-                list.add(new ModelPhong(ma, ten, String.valueOf(gia), tt));
+                String tang = cursor.getString(cursor.getColumnIndexOrThrow("tang"));
+                String dt = cursor.getString(cursor.getColumnIndexOrThrow("dienTich"));
+                list.add(new ModelPhong(ma, ten, String.valueOf(gia), tt, tang, dt));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
+    public List<ModelPhong> searchPhong(String keyword) {
+        List<ModelPhong> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM PhongTro WHERE maPhong LIKE ? OR tenPhong LIKE ?", new String[]{"%" + keyword + "%", "%" + keyword + "%"});
+        if (cursor.moveToFirst()) {
+            do {
+                String ma = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
+                String ten = cursor.getString(cursor.getColumnIndexOrThrow("tenPhong"));
+                int gia = cursor.getInt(cursor.getColumnIndexOrThrow("giaThue"));
+                String tt = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
+                String tang = cursor.getString(cursor.getColumnIndexOrThrow("tang"));
+                String dt = cursor.getString(cursor.getColumnIndexOrThrow("dienTich"));
+                list.add(new ModelPhong(ma, ten, String.valueOf(gia), tt, tang, dt));
             } while (cursor.moveToNext());
         }
         cursor.close();
