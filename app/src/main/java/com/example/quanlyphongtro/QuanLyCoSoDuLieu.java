@@ -22,7 +22,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // 1. Tạo bảng Người Dùng phục vụ Đăng nhập & Đăng ký
+        // 1. Tạo bảng Người Dùng
         String sqlUser = "CREATE TABLE NguoiDung (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "tenDangNhap TEXT UNIQUE, " +
@@ -66,7 +66,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS HoaDon");
         onCreate(db);
     }
-//------------------------------------------------------------------------------------------------------
+
     // --- CÁC HÀM XỬ LÝ NGƯỜI DÙNG ---
     public boolean dangnhap(String taiKhoan, String matKhau) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -90,7 +90,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // --- CÁC HÀM XỬ LÝ PHÒNG TRỌ (CRUD) ---
+    // --- CÁC HÀM XỬ LÝ PHÒNG TRỌ ---
     public boolean themPhong(String maPhong, String tenPhong, String giaThueStr, String trangThai) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -156,6 +156,18 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return list;
+    }
+
+    public int getGiaThuePhong(String maPhong) {
+        int giaThue = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT giaThue FROM PhongTro WHERE maPhong = ?", new String[]{maPhong});
+        if (cursor.moveToFirst()) {
+            giaThue = cursor.getInt(cursor.getColumnIndexOrThrow("giaThue"));
+        }
+        cursor.close();
+        db.close();
+        return giaThue;
     }
 
     // --- CÁC HÀM XỬ LÝ NGƯỜI THUÊ ---
