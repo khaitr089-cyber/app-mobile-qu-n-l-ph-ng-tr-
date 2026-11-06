@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -67,7 +68,7 @@ public class QuanLyHopDong extends AppCompatActivity {
         autoDienThongTinMacDinh();
         loadDanhSachHopDong();
 
-        // --- TÍNH NĂNG THÔNG MINH: CHỌN NGƯỜI THUÊ -> AUTO ĐIỀN PHÒNG & NGÀY THÁNG ---
+        // --- TÍNH NĂNG THÔNG MINH: CHỌN NGƯỜI THUÊ -> AUTO ĐIỀN PHÒNG & NGÀY BẮT ĐẦU / KẾT THÚC ---
         spnNguoidaidien.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -85,15 +86,31 @@ public class QuanLyHopDong extends AppCompatActivity {
                             }
 
                             // 2. Tự động điền ngày bắt đầu bằng ngày chuyển vào
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                             if (nt.getNgayChuyenVao() != null && !nt.getNgayChuyenVao().isEmpty()) {
                                 txtNgaybatdau.setText(nt.getNgayChuyenVao());
                                 txtNgaythanhtoandautien.setText(nt.getNgayChuyenVao());
                             } else {
-                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                                 String today = sdf.format(new Date());
                                 txtNgaybatdau.setText(today);
                                 txtNgaythanhtoandautien.setText(today);
                             }
+
+                            // 3. Tự động điền ngày kết thúc (lấy Ngày chuyển đi nếu có, nếu chưa có thì lấy 1 năm sau ngày bắt đầu)
+                            if (nt.getNgayChuyenDi() != null && !nt.getNgayChuyenDi().isEmpty()) {
+                                txtNgayketthuc.setText(nt.getNgayChuyenDi());
+                            } else {
+                                try {
+                                    Date startDate = sdf.parse(txtNgaybatdau.getText().toString());
+                                    Calendar cal = Calendar.getInstance();
+                                    if (startDate != null) cal.setTime(startDate);
+                                    cal.add(Calendar.YEAR, 1); // Cộng 1 năm làm thời hạn mặc định
+                                    txtNgayketthuc.setText(sdf.format(cal.getTime()));
+                                } catch (Exception e) {
+                                    txtNgayketthuc.setText("");
+                                }
+                            }
+
                             break;
                         }
                     }
@@ -229,9 +246,14 @@ public class QuanLyHopDong extends AppCompatActivity {
         txtMahopdong.setText(autoMaHD);
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String ngayHienTai = sdf.format(new Date());
+        Calendar cal = Calendar.getInstance();
+        String ngayHienTai = sdf.format(cal.getTime());
         txtNgaybatdau.setText(ngayHienTai);
         txtNgaythanhtoandautien.setText(ngayHienTai);
+
+        // Mặc định tự động điền ngày kết thúc là 1 năm sau
+        cal.add(Calendar.YEAR, 1);
+        txtNgayketthuc.setText(sdf.format(cal.getTime()));
 
         txtNgaythanhtoanhangthang.setText("5");
         txtNguoiocung.setText("Không");
