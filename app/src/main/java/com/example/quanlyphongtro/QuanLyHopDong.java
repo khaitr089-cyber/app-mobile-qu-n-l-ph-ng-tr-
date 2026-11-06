@@ -3,6 +3,7 @@ package com.example.quanlyphongtro;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -10,8 +11,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import com.example.quanlyphongtro.model.ModelNguoiThue;
 import com.example.quanlyphongtro.model.ModelPhong;
@@ -49,10 +53,27 @@ public class QuanLyHopDong extends AppCompatActivity {
         btnTaohopdong = findViewById(R.id.btntaohoadon);
         lvHopdong = findViewById(R.id.lvhopdong);
 
-        // Nạp dữ liệu vào Spinner
+        // Nạp dữ liệu vào Spinner và Auto điền thông tin mặc định
         loadSpinnerData();
-        // Load danh sách hợp đồng
+        autoDienThongTinMacDinh();
         loadDanhSachHopDong();
+
+        // Sự kiện khi người dùng chọn phòng trên Spinner -> Auto điền giá thuê & tiền cọc
+        spnPhongthue.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = parent.getItemAtPosition(position).toString();
+                if (!selected.contains("Không có")) {
+                    String maPhong = selected.split(" ")[0].trim();
+                    int giaThuePhong = dbHelper.getGiaThuePhong(maPhong);
+                    txtGiathue.setText(String.valueOf(giaThuePhong));
+                    txtTiencoc.setText(String.valueOf(giaThuePhong)); // Mặc định cọc 1 tháng
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         // Sự kiện Lưu hợp đồng
         btnTaohopdong.setOnClickListener(new View.OnClickListener() {
@@ -77,7 +98,7 @@ public class QuanLyHopDong extends AppCompatActivity {
                 String nguoiChon = spnNguoidaidien.getSelectedItem() != null ? spnNguoidaidien.getSelectedItem().toString() : "";
 
                 if (phongChon.contains("Không có") || nguoiChon.contains("Không có")) {
-                    Toast.makeText(QuanLyHopDong.this, "Cần có ít nhất 1 phòng trống và 1 người thuê!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(QuanLyHopDong.this, "Cần có ít nhất 1 phòng và 1 người thuê trong hệ thống!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -92,7 +113,7 @@ public class QuanLyHopDong extends AppCompatActivity {
                     Toast.makeText(QuanLyHopDong.this, "Tạo hợp đồng thành công!", Toast.LENGTH_SHORT).show();
                     loadDanhSachHopDong();
                     loadSpinnerData();
-                    xoaTrangForm();
+                    autoDienThongTinMacDinh();
                 } else {
                     Toast.makeText(QuanLyHopDong.this, "Tạo thất bại! Mã hợp đồng có thể bị trùng.", Toast.LENGTH_SHORT).show();
                 }
@@ -100,25 +121,48 @@ public class QuanLyHopDong extends AppCompatActivity {
         });
     }
 
+    // --- HÀM TỰ ĐỘNG ĐIỀN THÔNG TIN (AUTO-FILL) ---
+    private void autoDienThongTinMacDinh() {
+        // 1. Auto sinh mã hợp đồng theo thời gian thực
+        String autoMaHD = "HD_" + System.currentTimeMillis();
+        txtMahopdong.setText(autoMaHD);
+
+        // 2. Auto điền ngày hôm nay cho ngày bắt đầu & ngày thanh toán đầu tiên
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String ngayHienTai = sdf.format(new Date());
+        txtNgaybatdau.setText(ngayHienTai);
+        txtNgaythanhtoandautien.setText(ngayHienTai);
+
+        // 3. Auto điền ngày đóng tiền hàng tháng là ngày 5
+        txtNgaythanhtoanhangthang.setText("5");
+
+        // 4. Mặc định số người ở cùng là Không
+        txtNguoiocung.setText("Không");
+    }
+
     private void loadSpinnerData() {
+        // Hiển thị TẤT CẢ các phòng để người dùng có thể linh hoạt chọn làm hợp đồng
         List<ModelPhong> allPhong = dbHelper.getAllPhong();
-        List<String> phongTrong = new ArrayList<>();
+        List<String> danhSachPhong = new ArrayList<>();
         for (ModelPhong p : allPhong) {
-            if (p.getTrangThai().toLowerCase().contains("trống")) {
-                phongTrong.add(p.getMaPhong() + " (" + p.getTenPhong() + ")");
-            }
+            danhSachPhong.add(p.getMaPhong() + " (" + p.getTenPhong() + " - " + p.getTrangThai() + ")");
         }
-        if (phongTrong.isEmpty()) phongTrong.add("Không có phòng trống");
-        ArrayAdapter<String> adapterPhong = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, phongTrong);
+        if (danhSachPhong.isEmpty()) {
+            danhSachPhong.add("Không có phòng nào");
+        }
+        ArrayAdapter<String> adapterPhong = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, danhSachPhong);
         adapterPhong.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnPhongthue.setAdapter(adapterPhong);
 
+        // Hiển thị danh sách người thuê
         List<ModelNguoiThue> allNguoiThue = dbHelper.getAllNguoiThue();
         List<String> tenNguoiThue = new ArrayList<>();
         for (ModelNguoiThue nt : allNguoiThue) {
             tenNguoiThue.add(nt.getHoTen() + " - " + nt.getSoDienThoai());
         }
-        if (tenNguoiThue.isEmpty()) tenNguoiThue.add("Không có người thuê nào");
+        if (tenNguoiThue.isEmpty()) {
+            tenNguoiThue.add("Không có người thuê nào");
+        }
         ArrayAdapter<String> adapterNguoiThue = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tenNguoiThue);
         adapterNguoiThue.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnNguoidaidien.setAdapter(adapterNguoiThue);
@@ -128,18 +172,5 @@ public class QuanLyHopDong extends AppCompatActivity {
         List<String> list = dbHelper.getAllHopDongString();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
         lvHopdong.setAdapter(adapter);
-    }
-
-    private void xoaTrangForm() {
-        txtMahopdong.setText("");
-        txtNguoiocung.setText("");
-        txtNgaybatdau.setText("");
-        txtNgayketthuc.setText("");
-        txtGiathue.setText("");
-        txtTiencoc.setText("");
-        txtNgaythanhtoanhangthang.setText("");
-        txtNgaythanhtoandautien.setText("");
-        txtGhichu.setText("");
-        txtMahopdong.requestFocus();
     }
 }
