@@ -24,6 +24,8 @@ import com.example.quanlyphongtro.model.ModelPhong;
 
 public class QuanLyHopDong extends AppCompatActivity {
 
+    // Khai báo các view
+    TextInputEditText txtTenchunha, txtSdtchunha, txtCccdchunha;
     TextInputEditText txtMahopdong, txtNguoiocung, txtNgaybatdau, txtNgayketthuc;
     TextInputEditText txtGiathue, txtTiencoc, txtNgaythanhtoanhangthang, txtNgaythanhtoandautien, txtGhichu;
     Spinner spnPhongthue, spnNguoidaidien;
@@ -39,7 +41,12 @@ public class QuanLyHopDong extends AppCompatActivity {
 
         dbHelper = new QuanLyCoSoDuLieu(this);
 
-        // Ánh xạ View
+        // 1. Ánh xạ View BÊN A (BÊN CHO THUÊ)
+        txtTenchunha = findViewById(R.id.txttenchunha);
+        txtSdtchunha = findViewById(R.id.txtsdtchunha);
+        txtCccdchunha = findViewById(R.id.txtcccdchunha);
+
+        // 2. Ánh xạ View BÊN B (BÊN THUÊ) & Chi tiết hợp đồng
         txtMahopdong = findViewById(R.id.txtmahopdong);
         spnPhongthue = findViewById(R.id.spnphongthue);
         spnNguoidaidien = findViewById(R.id.spnnguoidaidien);
@@ -66,19 +73,26 @@ public class QuanLyHopDong extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedNguoiThue = parent.getItemAtPosition(position).toString();
                 if (!selectedNguoiThue.contains("Không có")) {
-                    String sdt = selectedNguoiThue.split("-")[1].trim();
+                    String sdt = selectedNguoiThue.contains("-") ? selectedNguoiThue.split("-")[1].trim() : "";
                     
                     List<ModelNguoiThue> allNguoiThue = dbHelper.getAllNguoiThue();
                     for (ModelNguoiThue nt : allNguoiThue) {
-                        if (nt.getSoDienThoai().equals(sdt)) {
+                        if (nt.getSoDienThoai().equals(sdt) || selectedNguoiThue.contains(nt.getHoTen())) {
                             // 1. Tự động chọn đúng phòng mà người này đang thuê
                             String phongThueCuaHo = nt.getPhongThue();
-                            chonItemSpinnerTheoGiaTri(spnPhongthue, phongThueCuaHo);
+                            if (phongThueCuaHo != null && !phongThueCuaHo.isEmpty()) {
+                                chonItemSpinnerTheoGiaTri(spnPhongthue, phongThueCuaHo);
+                            }
 
                             // 2. Tự động điền ngày bắt đầu bằng ngày chuyển vào
                             if (nt.getNgayChuyenVao() != null && !nt.getNgayChuyenVao().isEmpty()) {
                                 txtNgaybatdau.setText(nt.getNgayChuyenVao());
                                 txtNgaythanhtoandautien.setText(nt.getNgayChuyenVao());
+                            } else {
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                                String today = sdf.format(new Date());
+                                txtNgaybatdau.setText(today);
+                                txtNgaythanhtoandautien.setText(today);
                             }
                             break;
                         }
@@ -152,31 +166,44 @@ public class QuanLyHopDong extends AppCompatActivity {
             }
         });
 
-        // --- TÍNH NĂNG XEM CHI TIẾT HỢP ĐỒNG (F19) ---
+        // --- TÍNH NĂNG XEM CHI TIẾT HỢP ĐỒNG MẪU (F19) ---
         lvHopdong.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 List<ModelHopDong> hopDongList = dbHelper.getAllHopDong();
                 if (position >= 0 && position < hopDongList.size()) {
                     ModelHopDong hd = hopDongList.get(position);
-                    String chiTiet = "==============================\n" +
-                            "       THÔNG TIN HỢP ĐỒNG       \n" +
-                            "==============================\n\n" +
-                            "• Mã HĐ: " + hd.getMaHopDong() + "\n" +
-                            "• Phòng thuê: " + hd.getMaPhong() + "\n" +
+
+                    String tenChuNha = txtTenchunha.getText().toString();
+                    String sdtChuNha = txtSdtchunha.getText().toString();
+                    String cccdChuNha = txtCccdchunha.getText().toString();
+
+                    String chiTietMau = 
+                            "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\n" +
+                            "   Độc lập - Tự do - Hạnh phúc\n\n" +
+                            "  HỢP ĐỒNG THUÊ PHÒNG TRỌ\n" +
+                            "  (Số HĐ: " + hd.getMaHopDong() + ")\n\n" +
+                            "BÊN A (BÊN CHO THUÊ):\n" +
+                            "• Họ và tên: " + tenChuNha + "\n" +
+                            "• Điện thoại: " + sdtChuNha + "\n" +
+                            "• Số CCCD: " + cccdChuNha + "\n\n" +
+                            "BÊN B (BÊN THUÊ):\n" +
                             "• Người đại diện: " + hd.getNguoiDaiDien() + "\n" +
-                            "• Người ở cùng: " + hd.getNguoiOCung() + "\n" +
-                            "• Thời hạn: Từ " + hd.getNgayBatDau() + " đến " + hd.getNgayKetThuc() + "\n" +
+                            "• Người ở cùng: " + hd.getNguoiOCung() + "\n\n" +
+                            "ĐIỀU 1: THỎA THUẬN THUÊ\n" +
+                            "• Phòng thuê số: " + hd.getMaPhong() + "\n" +
+                            "• Thời hạn: Từ " + hd.getNgayBatDau() + " đến " + hd.getNgayKetThuc() + "\n\n" +
+                            "ĐIỀU 2: GIÁ THUÊ VÀ ĐẶT CỌC\n" +
                             "• Giá thuê: " + hd.getGiaThue() + " VNĐ/tháng\n" +
-                            "• Tiền cọc: " + hd.getTienCoc() + " VNĐ\n" +
-                            "• Ngày đóng tiền hàng tháng: Mùng " + hd.getNgayThanhToanHangThang() + "\n" +
-                            "• Ngày đóng kỳ đầu: " + hd.getNgayThanhToanDauTien() + "\n" +
-                            "• Ghi chú / Điều khoản:\n" + hd.getGhiChu() + "\n\n" +
-                            "• Trạng thái: " + hd.getTrangThai();
+                            "• Tiền đặt cọc: " + hd.getTienCoc() + " VNĐ\n" +
+                            "• Ngày đóng tiền: Mùng " + hd.getNgayThanhToanHangThang() + " hàng tháng\n\n" +
+                            "ĐIỀU 3: GHI CHÚ / ĐIỀU KHOẢN KHÁC\n" +
+                            "• " + hd.getGhiChu() + "\n\n" +
+                            "Trạng thái HĐ: " + hd.getTrangThai();
 
                     new AlertDialog.Builder(QuanLyHopDong.this)
-                            .setTitle("Chi Tiết Hợp Đồng")
-                            .setMessage(chiTiet)
+                            .setTitle("Mẫu Hợp Đồng Chi Tiết")
+                            .setMessage(chiTietMau)
                             .setPositiveButton("Đóng", null)
                             .show();
                 }
@@ -186,9 +213,11 @@ public class QuanLyHopDong extends AppCompatActivity {
 
     private void chonItemSpinnerTheoGiaTri(Spinner spinner, String giaTri) {
         ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
-        if (adapter == null) return;
+        if (adapter == null || giaTri == null) return;
+
+        String maPhongCore = giaTri.split(" ")[0].trim();
         for (int i = 0; i < adapter.getCount(); i++) {
-            if (adapter.getItem(i).toString().contains(giaTri)) {
+            if (adapter.getItem(i).toString().startsWith(maPhongCore)) {
                 spinner.setSelection(i);
                 break;
             }
@@ -201,6 +230,7 @@ public class QuanLyHopDong extends AppCompatActivity {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String ngayHienTai = sdf.format(new Date());
+        txtNgaybatdau.setText(ngayHienTai);
         txtNgaythanhtoandautien.setText(ngayHienTai);
 
         txtNgaythanhtoanhangthang.setText("5");

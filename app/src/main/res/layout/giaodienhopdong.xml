@@ -13,8 +13,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="QUẢN LÝ HỢP ĐỒNG"
-            android:textSize="24sp"
+            android:text="HỢP ĐỒNG THUÊ PHÒNG TRỌ"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
             android:layout_gravity="center"
@@ -33,7 +33,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="12dp"
                 android:hint="Mã hợp đồng">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtmahopdong"
@@ -41,14 +41,77 @@
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Khối BÊN A (BÊN CHO THUÊ / CHỦ NHÀ) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Chọn phòng thuê:"
+                android:text="BÊN A: BÊN CHO THUÊ (CHỦ NHÀ)"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="Họ và tên Chủ nhà">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txttenchunha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nguyễn Văn A" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:hint="SĐT Chủ nhà">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/txtsdtchunha"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0987654321" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:hint="CCCD Chủ nhà">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/txtcccdchunha"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="001090123456" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- Khối BÊN B (BÊN THUÊ / KHÁCH THUÊ) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BÊN B: BÊN THUÊ (KHÁCH THUÊ)"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chọn Người đại diện thuê:"
                 android:textColor="#555555"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="2dp"/>
             <Spinner
-                android:id="@+id/spnphongthue"
+                android:id="@+id/spnnguoidaidien"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginBottom="8dp"/>
@@ -56,11 +119,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Người đại diện thuê:"
+                android:text="Chọn phòng thuê:"
                 android:textColor="#555555"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="2dp"/>
             <Spinner
-                android:id="@+id/spnnguoidaidien"
+                android:id="@+id/spnphongthue"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginBottom="8dp"/>
@@ -68,7 +131,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="12dp"
                 android:hint="Người ở cùng (tùy chọn)">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtnguoiocung"
@@ -76,6 +139,7 @@
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Thời gian & Điều khoản thanh toán -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -151,7 +215,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="4dp"
-                    android:hint="Ngày thanh toán hàng tháng">
+                    android:hint="Ngày đóng tiền hàng tháng">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/txtngaythanhtoanhangthang"
                         android:layout_width="match_parent"
@@ -164,7 +228,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
-                    android:hint="Ngày thanh toán đầu tiên">
+                    android:hint="Ngày đóng kỳ 1">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/txtngaythanhtoandautien"
                         android:layout_width="match_parent"
@@ -176,7 +240,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Ghi chú / Điều khoản">
+                android:hint="Ghi chú / Điều khoản thêm">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtghichu"
                     android:layout_width="match_parent"
@@ -195,7 +259,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Danh Sách Hợp Đồng"
+            android:text="Danh Sách Hợp Đồng Da Ký"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
