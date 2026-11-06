@@ -13,8 +13,8 @@ import android.widget.Toast;
 public class ManHinhChinh extends AppCompatActivity {
 
     // Khai báo các view
-    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvthongke;
-    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgThongKe;
+    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvquanlydiennuoc, cvthongke;
+    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgDienNuoc, btnImgThongKe;
     Button btndangxuat;
 
     @Override
@@ -27,6 +27,7 @@ public class ManHinhChinh extends AppCompatActivity {
         cvquanlynguoithue = findViewById(R.id.cvquanlynguoithue);
         cvquanlyhoadon = findViewById(R.id.cvquanlyhoadon);
         cvquanlyhopdong = findViewById(R.id.cvquanlyhopdong);
+        cvquanlydiennuoc = findViewById(R.id.cvquanlydiennuoc);
         cvthongke = findViewById(R.id.cvthongke);
 
         // Ánh xạ các ImageButton
@@ -34,6 +35,7 @@ public class ManHinhChinh extends AppCompatActivity {
         btnImgNguoiThue = findViewById(R.id.btnimgnguoithue);
         btnImgHoaDon = findViewById(R.id.btnimghoadon);
         btnImgHopDong = findViewById(R.id.btnimghopdong);
+        btnImgDienNuoc = findViewById(R.id.btnimgdiennuoc);
         btnImgThongKe = findViewById(R.id.btnimgthongke);
         
         // Ánh xạ nút Đăng xuất
@@ -83,7 +85,18 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlyhopdong != null) cvquanlyhopdong.setOnClickListener(listenerHopDong);
         if (btnImgHopDong != null) btnImgHopDong.setOnClickListener(listenerHopDong);
 
-        // 5. Thống kê
+        // 5. Quản lý điện nước & dịch vụ
+        View.OnClickListener listenerDienNuoc = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ManHinhChinh.this, QuanLyDienNuoc.class);
+                startActivity(intent);
+            }
+        };
+        if (cvquanlydiennuoc != null) cvquanlydiennuoc.setOnClickListener(listenerDienNuoc);
+        if (btnImgDienNuoc != null) btnImgDienNuoc.setOnClickListener(listenerDienNuoc);
+
+        // 6. Thống kê
         View.OnClickListener listenerThongKe = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,7 +107,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-        // 6. Đăng xuất
+        // 7. Đăng xuất
         if (btndangxuat != null) {
             btndangxuat.setOnClickListener(new View.OnClickListener() {
                 @Override
