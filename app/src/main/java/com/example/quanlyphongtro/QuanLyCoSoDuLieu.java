@@ -16,7 +16,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 12; // Tăng version để thêm trường số lượng người ở
+    private static final int DATABASE_VERSION = 13; // Tăng version lên 13 để nạp lại đầy đủ các bảng bao gồm DienNuoc
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
