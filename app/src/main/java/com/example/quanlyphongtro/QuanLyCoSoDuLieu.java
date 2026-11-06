@@ -8,13 +8,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.quanlyphongtro.model.ModelHopDong;
 import com.example.quanlyphongtro.model.ModelNguoiThue;
 import com.example.quanlyphongtro.model.ModelPhong;
 
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 8; // Tăng version lên 8 để hỗ trợ bảng Hợp Đồng
+    private static final int DATABASE_VERSION = 8;
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -332,8 +333,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public List<String> getAllHopDongString() {
-        List<String> list = new ArrayList<>();
+    public List<ModelHopDong> getAllHopDong() {
+        List<ModelHopDong> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM HopDong", null);
         if (cursor.moveToFirst()) {
@@ -341,13 +342,30 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 String maHD = cursor.getString(cursor.getColumnIndexOrThrow("maHopDong"));
                 String maP = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
                 String nguoiDD = cursor.getString(cursor.getColumnIndexOrThrow("nguoiDaiDien"));
+                String nguoiOC = cursor.getString(cursor.getColumnIndexOrThrow("nguoiOCung"));
+                String ngayBD = cursor.getString(cursor.getColumnIndexOrThrow("ngayBatDau"));
+                String ngayKT = cursor.getString(cursor.getColumnIndexOrThrow("ngayKetThuc"));
                 double gia = cursor.getDouble(cursor.getColumnIndexOrThrow("giaThue"));
+                double coc = cursor.getDouble(cursor.getColumnIndexOrThrow("tienCoc"));
+                String ngayTTThang = cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanHangThang"));
+                String ngayTTDau = cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanDauTien"));
+                String ghiChu = cursor.getString(cursor.getColumnIndexOrThrow("ghiChu"));
                 String trangThai = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
-                list.add("HĐ: " + maHD + " | Phòng: " + maP + " | ĐD: " + nguoiDD + " | Giá: " + gia + " đ (" + trangThai + ")");
+
+                list.add(new ModelHopDong(maHD, maP, nguoiDD, nguoiOC, ngayBD, ngayKT, gia, coc, ngayTTThang, ngayTTDau, ghiChu, trangThai));
             } while (cursor.moveToNext());
         }
         cursor.close();
         db.close();
+        return list;
+    }
+
+    public List<String> getAllHopDongString() {
+        List<String> list = new ArrayList<>();
+        List<ModelHopDong> hopDongList = getAllHopDong();
+        for (ModelHopDong hd : hopDongList) {
+            list.add("HĐ: " + hd.getMaHopDong() + " | Phòng: " + hd.getMaPhong() + " | ĐD: " + hd.getNguoiDaiDien() + " (" + hd.getTrangThai() + ")");
+        }
         return list;
     }
 }

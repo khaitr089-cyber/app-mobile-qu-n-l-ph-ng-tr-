@@ -1,5 +1,6 @@
 package com.example.quanlyphongtro;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.example.quanlyphongtro.model.ModelHopDong;
 import com.example.quanlyphongtro.model.ModelNguoiThue;
 import com.example.quanlyphongtro.model.ModelPhong;
 
@@ -146,6 +148,37 @@ public class QuanLyHopDong extends AppCompatActivity {
                     autoDienThongTinMacDinh();
                 } else {
                     Toast.makeText(QuanLyHopDong.this, "Tạo thất bại! Mã hợp đồng có thể bị trùng.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // --- TÍNH NĂNG XEM CHI TIẾT HỢP ĐỒNG (F19) ---
+        lvHopdong.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                List<ModelHopDong> hopDongList = dbHelper.getAllHopDong();
+                if (position >= 0 && position < hopDongList.size()) {
+                    ModelHopDong hd = hopDongList.get(position);
+                    String chiTiet = "==============================\n" +
+                            "       THÔNG TIN HỢP ĐỒNG       \n" +
+                            "==============================\n\n" +
+                            "• Mã HĐ: " + hd.getMaHopDong() + "\n" +
+                            "• Phòng thuê: " + hd.getMaPhong() + "\n" +
+                            "• Người đại diện: " + hd.getNguoiDaiDien() + "\n" +
+                            "• Người ở cùng: " + hd.getNguoiOCung() + "\n" +
+                            "• Thời hạn: Từ " + hd.getNgayBatDau() + " đến " + hd.getNgayKetThuc() + "\n" +
+                            "• Giá thuê: " + hd.getGiaThue() + " VNĐ/tháng\n" +
+                            "• Tiền cọc: " + hd.getTienCoc() + " VNĐ\n" +
+                            "• Ngày đóng tiền hàng tháng: Mùng " + hd.getNgayThanhToanHangThang() + "\n" +
+                            "• Ngày đóng kỳ đầu: " + hd.getNgayThanhToanDauTien() + "\n" +
+                            "• Ghi chú / Điều khoản:\n" + hd.getGhiChu() + "\n\n" +
+                            "• Trạng thái: " + hd.getTrangThai();
+
+                    new AlertDialog.Builder(QuanLyHopDong.this)
+                            .setTitle("Chi Tiết Hợp Đồng")
+                            .setMessage(chiTiet)
+                            .setPositiveButton("Đóng", null)
+                            .show();
                 }
             }
         });
