@@ -40,11 +40,12 @@ public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.Nguo
         ModelNguoiThue item = listNguoiThue.get(position);
         if (item == null) return;
 
-        holder.tvHoTen.setText(item.getHoTen());
+        holder.tvHoTen.setText("Họ tên: " + item.getHoTen());
         holder.tvSdt.setText("SĐT: " + item.getSoDienThoai());
-        holder.tvCccd.setText("CCCD: " + item.getCccd());
-        holder.tvPhongThue.setText("Phòng thuê: " + item.getPhongThue());
-        holder.tvQueQuan.setText("Quê quán: " + item.getQueQuan());
+        holder.tvPhong.setText("Phòng: " + item.getPhongThue());
+        
+        String ngayVao = item.getNgayChuyenVao() != null && !item.getNgayChuyenVao().isEmpty() ? item.getNgayChuyenVao() : "Chưa cập nhật";
+        holder.tvNgayVao.setText("Chuyển vào: " + ngayVao);
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -59,15 +60,14 @@ public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.Nguo
     }
 
     public static class NguoiThueViewHolder extends RecyclerView.ViewHolder {
-        TextView tvHoTen, tvSdt, tvCccd, tvPhongThue, tvQueQuan;
+        TextView tvHoTen, tvSdt, tvPhong, tvNgayVao;
 
         public NguoiThueViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvHoTen = itemView.findViewById(R.id.tvHoTen);
-            tvSdt = itemView.findViewById(R.id.tvSdt);
-            tvCccd = itemView.findViewById(R.id.tvCccd);
-            tvPhongThue = itemView.findViewById(R.id.tvPhongThue);
-            tvQueQuan = itemView.findViewById(R.id.tvQueQuan);
+            tvHoTen = itemView.findViewById(R.id.tvItemHoTen);
+            tvSdt = itemView.findViewById(R.id.tvItemSdt);
+            tvPhong = itemView.findViewById(R.id.tvItemPhong);
+            tvNgayVao = itemView.findViewById(R.id.tvItemNgayVao);
         }
     }
 }

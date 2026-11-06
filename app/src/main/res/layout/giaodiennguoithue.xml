@@ -113,13 +113,29 @@
                         android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Phòng thuê (Dropdown chọn từ danh sách phòng còn trống) -->
+                <!-- Ngày sinh -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Ngày sinh (dd/MM/yyyy)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtNgaySinh"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Phòng thuê -->
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Chọn phòng thuê (Còn trống)">
+                    android:hint="Chọn phòng thuê">
 
                     <AutoCompleteTextView
                         android:id="@+id/dropdownPhongThue"
@@ -132,7 +148,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="12dp"
                     android:hint="Quê quán / Địa chỉ">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -140,6 +156,38 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Ngày chuyển vào -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Ngày chuyển vào (dd/MM/yyyy)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtNgayChuyenVao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Ngày chuyển đi -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Ngày chuyển đi (dd/MM/yyyy)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtNgayChuyenDi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Action Buttons -->
@@ -195,6 +243,21 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Search Section -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:hint="Tìm kiếm theo Tên hoặc SĐT"
+            app:startIconDrawable="@android:drawable/ic_menu_search">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtTimKiem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- List Section Header -->
         <TextView
             android:layout_width="match_parent"
@@ -209,7 +272,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerDanhSachNguoiThue"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="250dp"
             android:background="@android:color/white"
             android:padding="8dp"/>
 
