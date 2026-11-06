@@ -39,7 +39,7 @@ public class ManHinhChinh extends AppCompatActivity {
         btndangxuat = findViewById(R.id.btndangxuat);
 
         //-------------------------------------------------------------------------------------
-        // 1. Sự kiện chuyển trang: Quản lý phòng trọ
+
         View.OnClickListener listenerQuanLyPhong = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,7 +63,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (btnImgNguoiThue != null) btnImgNguoiThue.setOnClickListener(listenerNguoiThue);
 
         //--------------------------------------------------------------------------------------
-        // 3. Sự kiện chuyển trang: Quản lý hóa đơn
+
         View.OnClickListener listenerHoaDon = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -75,7 +75,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (btnImgHoaDon != null) btnImgHoaDon.setOnClickListener(listenerHoaDon);
 
         //----------------------------------------------------------------------------------
-        // 4. Sự kiện chuyển trang: Báo cáo thống kê
+
         View.OnClickListener listenerThongKe = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +87,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
         //------------------------------------------------------------------------------------
-        // 5. Sự kiện Đăng xuất
+
         if (btndangxuat != null) {
             btndangxuat.setOnClickListener(new View.OnClickListener() {
                 @Override
