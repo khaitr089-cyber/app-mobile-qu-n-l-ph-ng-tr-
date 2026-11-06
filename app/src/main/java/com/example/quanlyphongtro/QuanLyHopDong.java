@@ -58,7 +58,37 @@ public class QuanLyHopDong extends AppCompatActivity {
         autoDienThongTinMacDinh();
         loadDanhSachHopDong();
 
-        // Sự kiện khi người dùng chọn phòng trên Spinner -> Auto điền giá thuê & tiền cọc
+        // --- TÍNH NĂNG THÔNG MINH: CHỌN NGƯỜI THUÊ -> AUTO ĐIỀN PHÒNG & NGÀY THÁNG ---
+        spnNguoidaidien.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedNguoiThue = parent.getItemAtPosition(position).toString();
+                if (!selectedNguoiThue.contains("Không có")) {
+                    String sdt = selectedNguoiThue.split("-")[1].trim();
+                    
+                    List<ModelNguoiThue> allNguoiThue = dbHelper.getAllNguoiThue();
+                    for (ModelNguoiThue nt : allNguoiThue) {
+                        if (nt.getSoDienThoai().equals(sdt)) {
+                            // 1. Tự động chọn đúng phòng mà người này đang thuê
+                            String phongThueCuaHo = nt.getPhongThue();
+                            chonItemSpinnerTheoGiaTri(spnPhongthue, phongThueCuaHo);
+
+                            // 2. Tự động điền ngày bắt đầu bằng ngày chuyển vào
+                            if (nt.getNgayChuyenVao() != null && !nt.getNgayChuyenVao().isEmpty()) {
+                                txtNgaybatdau.setText(nt.getNgayChuyenVao());
+                                txtNgaythanhtoandautien.setText(nt.getNgayChuyenVao());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Sự kiện khi chọn phòng thủ công -> Tự động điền giá thuê & tiền cọc
         spnPhongthue.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -121,48 +151,46 @@ public class QuanLyHopDong extends AppCompatActivity {
         });
     }
 
-    // --- HÀM TỰ ĐỘNG ĐIỀN THÔNG TIN (AUTO-FILL) ---
+    private void chonItemSpinnerTheoGiaTri(Spinner spinner, String giaTri) {
+        ArrayAdapter adapter = (ArrayAdapter) spinner.getAdapter();
+        if (adapter == null) return;
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i).toString().contains(giaTri)) {
+                spinner.setSelection(i);
+                break;
+            }
+        }
+    }
+
     private void autoDienThongTinMacDinh() {
-        // 1. Auto sinh mã hợp đồng theo thời gian thực
         String autoMaHD = "HD_" + System.currentTimeMillis();
         txtMahopdong.setText(autoMaHD);
 
-        // 2. Auto điền ngày hôm nay cho ngày bắt đầu & ngày thanh toán đầu tiên
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String ngayHienTai = sdf.format(new Date());
-        txtNgaybatdau.setText(ngayHienTai);
         txtNgaythanhtoandautien.setText(ngayHienTai);
 
-        // 3. Auto điền ngày đóng tiền hàng tháng là ngày 5
         txtNgaythanhtoanhangthang.setText("5");
-
-        // 4. Mặc định số người ở cùng là Không
         txtNguoiocung.setText("Không");
     }
 
     private void loadSpinnerData() {
-        // Hiển thị TẤT CẢ các phòng để người dùng có thể linh hoạt chọn làm hợp đồng
         List<ModelPhong> allPhong = dbHelper.getAllPhong();
         List<String> danhSachPhong = new ArrayList<>();
         for (ModelPhong p : allPhong) {
             danhSachPhong.add(p.getMaPhong() + " (" + p.getTenPhong() + " - " + p.getTrangThai() + ")");
         }
-        if (danhSachPhong.isEmpty()) {
-            danhSachPhong.add("Không có phòng nào");
-        }
+        if (danhSachPhong.isEmpty()) danhSachPhong.add("Không có phòng nào");
         ArrayAdapter<String> adapterPhong = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, danhSachPhong);
         adapterPhong.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnPhongthue.setAdapter(adapterPhong);
 
-        // Hiển thị danh sách người thuê
         List<ModelNguoiThue> allNguoiThue = dbHelper.getAllNguoiThue();
         List<String> tenNguoiThue = new ArrayList<>();
         for (ModelNguoiThue nt : allNguoiThue) {
             tenNguoiThue.add(nt.getHoTen() + " - " + nt.getSoDienThoai());
         }
-        if (tenNguoiThue.isEmpty()) {
-            tenNguoiThue.add("Không có người thuê nào");
-        }
+        if (tenNguoiThue.isEmpty()) tenNguoiThue.add("Không có người thuê nào");
         ArrayAdapter<String> adapterNguoiThue = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tenNguoiThue);
         adapterNguoiThue.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnNguoidaidien.setAdapter(adapterNguoiThue);
