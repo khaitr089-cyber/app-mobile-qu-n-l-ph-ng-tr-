@@ -66,7 +66,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS HoaDon");
         onCreate(db);
     }
-
+//------------------------------------------------------------------------------------------------------
     // --- CÁC HÀM XỬ LÝ NGƯỜI DÙNG ---
     public boolean dangnhap(String taiKhoan, String matKhau) {
         SQLiteDatabase db = this.getReadableDatabase();
