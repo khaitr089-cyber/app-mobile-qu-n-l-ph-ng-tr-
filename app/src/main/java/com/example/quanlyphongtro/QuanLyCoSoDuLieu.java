@@ -16,11 +16,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-<<<<<<< Updated upstream
     private static final int DATABASE_VERSION = 12; // Tăng version để thêm trường số lượng người ở
-=======
-    private static final int DATABASE_VERSION = 12;
->>>>>>> Stashed changes
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,11 +44,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlPhong);
 
-<<<<<<< Updated upstream
         // 3. Tạo bảng Người Thuê (Bổ sung ngaySinh, ngayChuyenVao, ngayChuyenDi, soLuongNguoi)
-=======
-        // 3. Tạo bảng Người Thuê
->>>>>>> Stashed changes
         String sqlNguoiThue = "CREATE TABLE NguoiThue (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "hoTen TEXT, " +
