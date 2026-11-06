@@ -24,7 +24,7 @@ public class QuanLyHoaDon extends AppCompatActivity {
     TextInputEditText txtNuoccu, txtNuocmoi, txtGianuoc, txtTienphong, txtPhidichvu;
     AutoCompleteTextView txtMaphong;
     TextView txtTongtien;
-    Button btnTinh, btnThem, btnXoa;
+    Button btnTinh, btnThem, btnXoa, btnQuayLaiHoaDon;
     ListView lvHoadon;
 
     QuanLyCoSoDuLieu dbHelper;
@@ -57,6 +57,7 @@ public class QuanLyHoaDon extends AppCompatActivity {
         btnTinh = findViewById(R.id.btntinh);
         btnThem = findViewById(R.id.btnthem);
         btnXoa = findViewById(R.id.btnxoa);
+        btnQuayLaiHoaDon = findViewById(R.id.btnQuayLaiHoaDon);
         lvHoadon = findViewById(R.id.lvhoadon);
 
         // Nạp danh sách các phòng đang cho thuê vào Dropdown chọn phòng
@@ -112,6 +113,14 @@ public class QuanLyHoaDon extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 xoaTrangForm();
+            }
+        });
+
+        // 5. Sự kiện nút "Quay lại"
+        btnQuayLaiHoaDon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
     }
