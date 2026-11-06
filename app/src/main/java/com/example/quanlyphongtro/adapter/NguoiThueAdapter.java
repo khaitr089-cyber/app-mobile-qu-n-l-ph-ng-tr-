@@ -1,4 +1,4 @@
-package com.example.quanlyphongtro;
+package com.example.quanlyphongtro.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+
+import com.example.quanlyphongtro.R;
+import com.example.quanlyphongtro.model.ModelNguoiThue;
 
 public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.NguoiThueViewHolder> {
 

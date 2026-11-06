@@ -8,10 +8,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.quanlyphongtro.model.ModelNguoiThue;
+import com.example.quanlyphongtro.model.ModelPhong;
+
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 5; // Tăng version lên 5 để thêm bảng Hóa Đơn
+    private static final int DATABASE_VERSION = 5;
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

@@ -1,4 +1,4 @@
-package com.example.quanlyphongtro;
+package com.example.quanlyphongtro.model;
 
 public class ModelNguoiThue {
     private String hoTen;

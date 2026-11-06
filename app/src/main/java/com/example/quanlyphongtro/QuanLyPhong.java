@@ -12,6 +12,9 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 import java.util.List;
 
+import com.example.quanlyphongtro.adapter.PhongAdapter;
+import com.example.quanlyphongtro.model.ModelPhong;
+
 public class QuanLyPhong extends AppCompatActivity {
 
     TextInputEditText edtMaPhong, edtGiaThue;
@@ -43,12 +46,12 @@ public class QuanLyPhong extends AppCompatActivity {
         btnQuayLaiPhong = findViewById(R.id.btnQuayLaiPhong);
         recyclerDanhSachPhong = findViewById(R.id.recyclerDanhSachPhong);
 
-        // Thiết lập dữ liệu cho Dropdown Loại Phòng (Phòng đơn, Phòng đôi, Studio)
+        // Thiết lập dữ liệu cho Dropdown Loại Phòng
         String[] loaiPhongArray = new String[]{"Phòng đơn", "Phòng đôi", "Studio"};
         ArrayAdapter<String> adapterLoaiPhong = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, loaiPhongArray);
         dropdownLoaiPhong.setAdapter(adapterLoaiPhong);
 
-        // Thiết lập dữ liệu cho Dropdown Trạng Thái (Còn trống, Đang thuê)
+        // Thiết lập dữ liệu cho Dropdown Trạng Thái
         String[] trangThaiArray = new String[]{"Còn trống", "Đang thuê"};
         ArrayAdapter<String> adapterTrangThai = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, trangThaiArray);
         dropdownTrangThai.setAdapter(adapterTrangThai);
@@ -163,7 +166,7 @@ public class QuanLyPhong extends AppCompatActivity {
         edtMaPhong.setEnabled(true);
         dropdownLoaiPhong.setText("Phòng đơn", false);
         edtGiaThue.setText("");
-dropdownTrangThai.setText("Còn trống", false);
+        dropdownTrangThai.setText("Còn trống", false);
         edtMaPhong.requestFocus();
     }
 }

@@ -13,6 +13,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.quanlyphongtro.adapter.NguoiThueAdapter;
+import com.example.quanlyphongtro.model.ModelNguoiThue;
+import com.example.quanlyphongtro.model.ModelPhong;
+
 public class QuanLyNguoiThue extends AppCompatActivity {
 
     // Khai báo các thành phần giao diện người thuê

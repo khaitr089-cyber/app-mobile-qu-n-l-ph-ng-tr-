@@ -1,4 +1,4 @@
-package com.example.quanlyphongtro;
+package com.example.quanlyphongtro.model;
 
 public class ModelPhong {
     private String maPhong;

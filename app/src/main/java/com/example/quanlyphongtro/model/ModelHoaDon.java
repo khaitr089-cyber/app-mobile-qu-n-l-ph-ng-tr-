@@ -1,4 +1,4 @@
-package com.example.quanlyphongtro;
+package com.example.quanlyphongtro.model;
 
 public class ModelHoaDon {
     private String maHoaDon;
@@ -15,11 +15,23 @@ public class ModelHoaDon {
         return maHoaDon;
     }
 
+    public void setMaHoaDon(String maHoaDon) {
+        this.maHoaDon = maHoaDon;
+    }
+
     public String getMaPhong() {
         return maPhong;
     }
 
+    public void setMaPhong(String maPhong) {
+        this.maPhong = maPhong;
+    }
+
     public double getTongTien() {
         return tongTien;
+    }
+
+    public void setTongTien(double tongTien) {
+        this.tongTien = tongTien;
     }
 }
