@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#7A4CAF50">
+    android:background="#F5F5F5">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -116,10 +116,9 @@
             android:layout_height="wrap_content"
             android:alignmentMode="alignMargins"
             android:columnCount="2"
-            android:columnOrderPreserved="false"
-            android:rowCount="2">
+            android:columnOrderPreserved="false">
 
-            <!-- Mục Quản lý phòng trọ -->
+            <!-- 1. Quản lý phòng trọ -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvquanlyphongtro"
                 android:layout_width="0dp"
@@ -136,12 +135,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <ImageButton
                         android:id="@+id/btnimgquanlyphongtro"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@android:drawable/ic_dialog_map"
                         app:tint="#FF9800"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -150,14 +149,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="Quản Lý Phòng"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Mục Quản lý người thuê -->
+            <!-- 2. Quản lý người thuê -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvquanlynguoithue"
                 android:layout_width="0dp"
@@ -174,12 +173,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <ImageButton
                         android:id="@+id/btnimgnguoithue"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@android:drawable/ic_menu_myplaces"
                         app:tint="#4CAF50"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -188,14 +187,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="Người Thuê"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Mục Quản lý hóa đơn -->
+            <!-- 3. Quản lý hóa đơn -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvquanlyhoadon"
                 android:layout_width="0dp"
@@ -212,12 +211,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <ImageButton
                         android:id="@+id/btnimghoadon"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@android:drawable/ic_menu_agenda"
                         app:tint="#2196F3"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -226,14 +225,90 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="Quản Lý Hóa Đơn"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Mục Thống kê -->
+            <!-- 4. Quản lý hợp đồng (MỚI) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cvquanlyhopdong"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <ImageButton
+                        android:id="@+id/btnimghopdong"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        app:tint="#E91E63"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Quản lý hợp đồng"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Quản Lý Hợp Đồng"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 5. Quản lý điện nước & dịch vụ (MỚI) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cvquanlydiennuoc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <ImageButton
+                        android:id="@+id/btnimgdiennuoc"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_menu_manage"
+                        app:tint="#00BCD4"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Điện nước dịch vụ"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Điện Nước &amp; Dịch Vụ"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 6. Báo cáo thống kê -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvthongke"
                 android:layout_width="0dp"
@@ -250,12 +325,12 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="20dp">
 
                     <ImageButton
                         android:id="@+id/btnimgthongke"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:src="@android:drawable/ic_menu_sort_by_size"
                         app:tint="#9C27B0"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -264,9 +339,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:text="Báo Cáo Thống Kê"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -278,7 +353,7 @@
             android:id="@+id/btndangxuat"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:backgroundTint="#F44336"
             android:text="ĐĂNG XUẤT"
             android:textColor="@android:color/white"

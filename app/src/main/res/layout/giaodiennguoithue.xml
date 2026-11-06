@@ -12,16 +12,40 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Title -->
-        <TextView
+        <!-- Header with Title and Top-Right Back Button -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="QUẢN LÝ NGƯỜI THUÊ"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="16dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:text="QUẢN LÝ NGƯỜI THUÊ"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnQuayLaiNguoiThue"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="Quay lại"
+                android:textColor="#2196F3"
+                android:textSize="14sp"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconTint="#2196F3"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="8dp"/>
+        </RelativeLayout>
 
         <!-- Input Card -->
         <androidx.cardview.widget.CardView
@@ -187,17 +211,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:background="@android:color/white"
-            android:padding="8dp"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Back Button -->
-        <Button
-            android:id="@+id/btnQuayLaiNguoiThue"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Quay lại"
-            android:textSize="16sp"/>
+            android:padding="8dp"/>
 
     </LinearLayout>
 </ScrollView>
