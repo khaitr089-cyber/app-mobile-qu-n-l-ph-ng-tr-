@@ -19,7 +19,6 @@ import com.example.quanlyphongtro.model.ModelPhong;
 
 public class QuanLyPhong extends AppCompatActivity {
 
-    // Khai báo các view (Đã bỏ edtSoNguoiToiDa)
     TextInputEditText edtMaPhong, edtGiaThue, edtTang, edtDienTich, edtTimKiemPhong;
     AutoCompleteTextView dropdownLoaiPhong, dropdownTrangThai;
     Button btnThemPhong, btnSuaPhong, btnXoaPhong, btnLamMoiPhong, btnQuayLaiPhong;
@@ -28,6 +27,9 @@ public class QuanLyPhong extends AppCompatActivity {
     QuanLyCoSoDuLieu db;
     List<ModelPhong> listPhong;
     PhongAdapter phongAdapter;
+
+    // Biến lưu mã phòng đang được chọn để Sửa hoặc Xóa chính xác đối tượng đang chọn
+    private String selectedMaPhong = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +82,7 @@ public class QuanLyPhong extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        // --- BƯỚC 3: THÊM PHÒNG VÀO SQLITE ---
+        // --- BƯỚC 3: THÊM PHÒNG VÀO SQLITE (Kiểm tra trùng mã phòng) ---
         btnThemPhong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,27 +102,26 @@ public class QuanLyPhong extends AppCompatActivity {
                         loadDanhSachPhong("");
                         lamMoiForm();
                     } else {
-                        Toast.makeText(QuanLyPhong.this, "Thêm thất bại (Mã phòng có thể đã tồn tại)!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(QuanLyPhong.this, "Thêm thất bại (Mã phòng đã tồn tại)!", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         });
 
-        // --- BƯỚC 4: SỬA THÔNG TIN PHÒNG TRONG SQLITE ---
+        // --- BƯỚC 4: SỬA THÔNG TIN PHÒNG TRONG SQLITE (Dựa vào selectedMaPhong đang chọn) ---
         btnSuaPhong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ma = edtMaPhong.getText().toString().trim();
-                String ten = dropdownLoaiPhong.getText().toString().trim();
-                String gia = edtGiaThue.getText().toString().trim();
-                String tt = dropdownTrangThai.getText().toString().trim();
-                String tang = edtTang.getText().toString().trim();
-                String dienTich = edtDienTich.getText().toString().trim();
-
-                if (ma.isEmpty()) {
+                if (selectedMaPhong.isEmpty()) {
                     Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần sửa từ danh sách!", Toast.LENGTH_SHORT).show();
                 } else {
-                    boolean check = db.suaPhong(ma, ten, gia, tt, tang, dienTich);
+                    String ten = dropdownLoaiPhong.getText().toString().trim();
+                    String gia = edtGiaThue.getText().toString().trim();
+                    String tt = dropdownTrangThai.getText().toString().trim();
+                    String tang = edtTang.getText().toString().trim();
+                    String dienTich = edtDienTich.getText().toString().trim();
+
+                    boolean check = db.suaPhong(selectedMaPhong, ten, gia, tt, tang, dienTich);
                     if (check) {
                         Toast.makeText(QuanLyPhong.this, "Sửa phòng thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachPhong("");
@@ -132,15 +133,14 @@ public class QuanLyPhong extends AppCompatActivity {
             }
         });
 
-        // --- BƯỚC 5: XÓA PHÒNG KHỎI SQLITE ---
+        // --- BƯỚC 5: XÓA PHÒNG KHỎI SQLITE (Chỉ xóa đúng phòng đang chọn) ---
         btnXoaPhong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ma = edtMaPhong.getText().toString().trim();
-                if (ma.isEmpty()) {
+                if (selectedMaPhong.isEmpty()) {
                     Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
                 } else {
-                    boolean check = db.xoaPhong(ma);
+                    boolean check = db.xoaPhong(selectedMaPhong);
                     if (check) {
                         Toast.makeText(QuanLyPhong.this, "Xóa phòng thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachPhong("");
@@ -181,8 +181,9 @@ public class QuanLyPhong extends AppCompatActivity {
         phongAdapter = new PhongAdapter(this, listPhong, new PhongAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(ModelPhong phong) {
+                selectedMaPhong = phong.getMaPhong(); // Ghi nhớ mã phòng đang chọn
                 edtMaPhong.setText(phong.getMaPhong());
-                edtMaPhong.setEnabled(false); // Khóa không cho sửa mã phòng
+                edtMaPhong.setEnabled(false); // Khóa không cho sửa mã phòng khi đang chỉnh sửa
                 dropdownLoaiPhong.setText(phong.getTenPhong(), false);
                 edtGiaThue.setText(phong.getGiaThue());
                 edtTang.setText(phong.getTang());
@@ -196,6 +197,7 @@ public class QuanLyPhong extends AppCompatActivity {
 
     // --- HÀM LÀM TRẮNG FORM ---
     private void lamMoiForm() {
+        selectedMaPhong = ""; // Reset biến lưu trữ
         edtMaPhong.setText("");
         edtMaPhong.setEnabled(true);
         dropdownLoaiPhong.setText("Phòng đơn", false);

@@ -47,6 +47,9 @@ public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.Nguo
         String ngayVao = item.getNgayChuyenVao() != null && !item.getNgayChuyenVao().isEmpty() ? item.getNgayChuyenVao() : "Chưa cập nhật";
         holder.tvNgayVao.setText("Chuyển vào: " + ngayVao);
 
+        String ngayDi = item.getNgayChuyenDi() != null && !item.getNgayChuyenDi().isEmpty() ? item.getNgayChuyenDi() : "Chưa cập nhật";
+        holder.tvNgayDi.setText("Chuyển đi: " + ngayDi);
+
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(item);
@@ -60,7 +63,7 @@ public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.Nguo
     }
 
     public static class NguoiThueViewHolder extends RecyclerView.ViewHolder {
-        TextView tvHoTen, tvSdt, tvPhong, tvNgayVao;
+        TextView tvHoTen, tvSdt, tvPhong, tvNgayVao, tvNgayDi;
 
         public NguoiThueViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -68,6 +71,7 @@ public class NguoiThueAdapter extends RecyclerView.Adapter<NguoiThueAdapter.Nguo
             tvSdt = itemView.findViewById(R.id.tvItemSdt);
             tvPhong = itemView.findViewById(R.id.tvItemPhong);
             tvNgayVao = itemView.findViewById(R.id.tvItemNgayVao);
+            tvNgayDi = itemView.findViewById(R.id.tvItemNgayDi);
         }
     }
 }

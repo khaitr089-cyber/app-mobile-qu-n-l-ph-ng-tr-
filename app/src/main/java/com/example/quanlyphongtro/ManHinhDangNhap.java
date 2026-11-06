@@ -14,7 +14,6 @@ public class ManHinhDangNhap extends AppCompatActivity {
     Button btndangnhap, btndangki;
     QuanLyCoSoDuLieu db;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,10 +27,13 @@ public class ManHinhDangNhap extends AppCompatActivity {
         db = new QuanLyCoSoDuLieu(this);
 
         btndangnhap.setOnClickListener(v -> {
-            String taiKhoan = txttaikhoan.getText().toString();
-            String matKhau = txtmatkhau.getText().toString();
+            String taiKhoan = txttaikhoan.getText().toString().trim();
+            String matKhau = txtmatkhau.getText().toString().trim();
 
             if (db.dangnhap(taiKhoan, matKhau)) {
+                // Lưu tên tài khoản hiện tại vào Session để phân quyền dữ liệu
+                UserSession.currentUser = taiKhoan;
+
                 Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(ManHinhDangNhap.this, ManHinhChinh.class);
