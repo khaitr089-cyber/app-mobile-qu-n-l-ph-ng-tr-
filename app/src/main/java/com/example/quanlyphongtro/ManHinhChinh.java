@@ -8,7 +8,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.List;
+
+import com.example.quanlyphongtro.model.ModelNguoiThue;
+import com.example.quanlyphongtro.model.ModelPhong;
 
 public class ManHinhChinh extends AppCompatActivity {
 
@@ -16,11 +22,20 @@ public class ManHinhChinh extends AppCompatActivity {
     CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvquanlydiennuoc, cvthongke;
     ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgDienNuoc, btnImgThongKe;
     Button btndangxuat;
+    TextView txtSoPhongTrong, txtSoNguoiThue;
+
+    QuanLyCoSoDuLieu db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.giaodientrangchu);
+
+        db = new QuanLyCoSoDuLieu(this);
+
+        // Ánh xạ TextView thống kê
+        txtSoPhongTrong = findViewById(R.id.txtsophongtrong);
+        txtSoNguoiThue = findViewById(R.id.txtsonguoithue);
 
         // Ánh xạ các CardView
         cvquanlyphongtro = findViewById(R.id.cvquanlyphongtro);
@@ -119,6 +134,53 @@ public class ManHinhChinh extends AppCompatActivity {
                     finish();
                 }
             });
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        capNhatThongKeNhanh();
+    }
+
+    private void capNhatThongKeNhanh() {
+        if (db == null) return;
+
+        // Đếm số phòng trống từ SQLite
+        List<ModelPhong> danhSachPhong = db.getAllPhong();
+        int soPhongTrong = 0;
+        if (danhSachPhong != null) {
+            for (ModelPhong p : danhSachPhong) {
+                if (p.getTrangThai() != null && p.getTrangThai().toLowerCase().contains("trống")) {
+                    soPhongTrong++;
+                }
+            }
+        }
+
+        // Tính tổng số lượng người ở từ các hồ sơ người thuê (cộng dồn số lượng người ở từng phòng)
+        List<ModelNguoiThue> danhSachNguoiThue = db.getAllNguoiThue();
+        int tongSoNguoiO = 0;
+        if (danhSachNguoiThue != null) {
+            for (ModelNguoiThue nt : danhSachNguoiThue) {
+                try {
+                    String slStr = nt.getSoLuongNguoi();
+                    if (slStr != null && !slStr.isEmpty()) {
+                        tongSoNguoiO += Integer.parseInt(slStr);
+                    } else {
+                        tongSoNguoiO += 1; // Mặc định 1 người nếu chưa nhập
+                    }
+                } catch (NumberFormatException e) {
+                    tongSoNguoiO += 1;
+                }
+            }
+        }
+
+        // Hiển thị lên TextView tương ứng trên màn hình chính
+        if (txtSoPhongTrong != null) {
+            txtSoPhongTrong.setText(String.valueOf(soPhongTrong));
+        }
+        if (txtSoNguoiThue != null) {
+            txtSoNguoiThue.setText(String.valueOf(tongSoNguoiO));
         }
     }
 }

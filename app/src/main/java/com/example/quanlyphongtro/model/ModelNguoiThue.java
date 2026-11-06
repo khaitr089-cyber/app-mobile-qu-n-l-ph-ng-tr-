@@ -9,8 +9,9 @@ public class ModelNguoiThue {
     private String ngaySinh;
     private String ngayChuyenVao;
     private String ngayChuyenDi;
+    private String soLuongNguoi;
 
-    public ModelNguoiThue(String hoTen, String soDienThoai, String cccd, String phongThue, String queQuan, String ngaySinh, String ngayChuyenVao, String ngayChuyenDi) {
+    public ModelNguoiThue(String hoTen, String soDienThoai, String cccd, String phongThue, String queQuan, String ngaySinh, String ngayChuyenVao, String ngayChuyenDi, String soLuongNguoi) {
         this.hoTen = hoTen;
         this.soDienThoai = soDienThoai;
         this.cccd = cccd;
@@ -19,6 +20,7 @@ public class ModelNguoiThue {
         this.ngaySinh = ngaySinh;
         this.ngayChuyenVao = ngayChuyenVao;
         this.ngayChuyenDi = ngayChuyenDi;
+        this.soLuongNguoi = soLuongNguoi;
     }
 
     public String getHoTen() { return hoTen; }
@@ -44,4 +46,7 @@ public class ModelNguoiThue {
 
     public String getNgayChuyenDi() { return ngayChuyenDi; }
     public void setNgayChuyenDi(String ngayChuyenDi) { this.ngayChuyenDi = ngayChuyenDi; }
+
+    public String getSoLuongNguoi() { return soLuongNguoi; }
+    public void setSoLuongNguoi(String soLuongNguoi) { this.soLuongNguoi = soLuongNguoi; }
 }

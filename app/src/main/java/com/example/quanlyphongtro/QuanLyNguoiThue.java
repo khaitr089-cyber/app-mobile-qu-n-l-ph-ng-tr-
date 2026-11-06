@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -25,10 +26,11 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyNguoiThue extends AppCompatActivity {
 
     // Khai báo các thành phần giao diện người thuê
-    TextInputEditText edtHoTen, edtSoDienThoai, edtCCCD, edtNgaySinh, edtQueQuan, edtNgayChuyenVao, edtNgayChuyenDi;
+    TextInputEditText edtHoTen, edtSoDienThoai, edtCCCD, edtNgaySinh, edtQueQuan, edtNgayChuyenVao, edtNgayChuyenDi, edtSoLuongNguoi;
     AutoCompleteTextView dropdownPhongThue;
     Button btnThemNguoiThue, btnSuaNguoiThue, btnXoaNguoiThue, btnLamMoiNguoiThue, btnQuayLaiNguoiThue;
     RecyclerView recyclerDanhSachNguoiThue;
+    TextView tvTongSoNguoiThue;
 
     // Khai báo đối tượng SQLite và Adapter
     QuanLyCoSoDuLieu db;
@@ -52,6 +54,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         edtCCCD = findViewById(R.id.edtCCCD);
         edtNgaySinh = findViewById(R.id.edtNgaySinh);
         dropdownPhongThue = findViewById(R.id.dropdownPhongThue);
+        edtSoLuongNguoi = findViewById(R.id.edtSoLuongNguoi);
         edtQueQuan = findViewById(R.id.edtQueQuan);
         edtNgayChuyenVao = findViewById(R.id.edtNgayChuyenVao);
         edtNgayChuyenDi = findViewById(R.id.edtNgayChuyenDi);
@@ -62,6 +65,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         btnLamMoiNguoiThue = findViewById(R.id.btnLamMoiNguoiThue);
         btnQuayLaiNguoiThue = findViewById(R.id.btnQuayLaiNguoiThue);
         recyclerDanhSachNguoiThue = findViewById(R.id.recyclerDanhSachNguoiThue);
+        tvTongSoNguoiThue = findViewById(R.id.tvTongSoNguoiThue);
 
         // --- BƯỚC 2: THIẾT LẬP CHỌN LỊCH (DatePickerDialog) CHO CÁC Ô NGÀY THÁNG ---
         edtNgaySinh.setOnClickListener(v -> showDatePickerDialog(edtNgaySinh));
@@ -83,29 +87,30 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                 String cccd = edtCCCD.getText().toString().trim();
                 String ngaySinh = edtNgaySinh.getText().toString().trim();
                 String phongThue = dropdownPhongThue.getText().toString().trim();
+                String soLuong = edtSoLuongNguoi.getText().toString().trim();
                 String queQuan = edtQueQuan.getText().toString().trim();
                 String ngayVao = edtNgayChuyenVao.getText().toString().trim();
                 String ngayDi = edtNgayChuyenDi.getText().toString().trim();
+
+                if (soLuong.isEmpty()) soLuong = "1"; // Mặc định 1 người nếu để trống
 
                 // Kiểm tra rỗng
                 if (hoTen.isEmpty() || sdt.isEmpty() || cccd.isEmpty() || phongThue.isEmpty() || queQuan.isEmpty() || phongThue.contains("Không có")) {
                     Toast.makeText(QuanLyNguoiThue.this, "Vui lòng nhập đầy đủ thông tin hoặc chọn phòng trống!", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Gọi hàm thêm vào SQLite (Đã truyền đầy đủ ngày sinh, ngày vào, ngày đi)
-                    boolean check = db.themNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi);
+                    // Gọi hàm thêm vào SQLite
+                    boolean check = db.themNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuong);
                     if (check) {
-                        // Tách lấy mã phòng (VD: "P101 (Phòng đơn)" -> lấy "P101")
                         String maPhong = phongThue;
                         if (phongThue.contains(" ")) {
                             maPhong = phongThue.split(" ")[0].trim();
                         }
-                        // Cập nhật trạng thái phòng đó thành "Đang thuê" trong cơ sở dữ liệu
                         db.updateTrangThaiPhong(maPhong, "Đang thuê");
 
                         Toast.makeText(QuanLyNguoiThue.this, "Thêm người thuê thành công và đã cập nhật phòng!", Toast.LENGTH_SHORT).show();
-                        loadDanhSachNguoiThue(); // Tải lại danh sách người thuê
-                        loadDanhSachPhongTrong();// Cập nhật lại danh sách phòng trống
-                        lamMoiForm();            // Xóa trắng form
+                        loadDanhSachNguoiThue();
+                        loadDanhSachPhongTrong();
+                        lamMoiForm();
                     } else {
                         Toast.makeText(QuanLyNguoiThue.this, "Thêm thất bại (CCCD đã tồn tại)!", Toast.LENGTH_SHORT).show();
                     }
@@ -125,12 +130,14 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                     String newCccd = edtCCCD.getText().toString().trim();
                     String ngaySinh = edtNgaySinh.getText().toString().trim();
                     String phongThue = dropdownPhongThue.getText().toString().trim();
+                    String soLuong = edtSoLuongNguoi.getText().toString().trim();
                     String queQuan = edtQueQuan.getText().toString().trim();
                     String ngayVao = edtNgayChuyenVao.getText().toString().trim();
                     String ngayDi = edtNgayChuyenDi.getText().toString().trim();
 
-                    // Gọi hàm sửa trong SQLite theo CCCD cũ (selectedCccd)
-                    boolean check = db.suaNguoiThue(selectedCccd, hoTen, sdt, newCccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi);
+                    if (soLuong.isEmpty()) soLuong = "1";
+
+                    boolean check = db.suaNguoiThue(selectedCccd, hoTen, sdt, newCccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuong);
                     if (check) {
                         Toast.makeText(QuanLyNguoiThue.this, "Sửa thông tin thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachNguoiThue();
@@ -142,7 +149,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
             }
         });
 
-        // --- BƯỚC 5: CHỨC NĂNG XÓA NGƯỜI THUÊ (Chỉ xóa đúng người đang chọn) ---
+        // --- BƯỚC 5: CHỨC NĂNG XÓA NGƯỜI THUÊ ---
         btnXoaNguoiThue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,10 +158,8 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                 } else {
                     String phongThueHienTai = dropdownPhongThue.getText().toString().trim();
 
-                    // Gọi hàm xóa khỏi SQLite theo CCCD (selectedCccd)
                     boolean check = db.xoaNguoiThue(selectedCccd);
                     if (check) {
-                        // Nếu xóa người thuê, trả trạng thái phòng về "Còn trống"
                         if (!phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
                             String maPhong = phongThueHienTai.split(" ")[0].trim();
                             db.updateTrangThaiPhong(maPhong, "Còn trống");
@@ -226,6 +231,11 @@ public class QuanLyNguoiThue extends AppCompatActivity {
     // --- HÀM TẢI DANH SÁCH NGƯỜI THUÊ TỪ SQLITE LÊN RECYCLERVIEW ---
     private void loadDanhSachNguoiThue() {
         listNguoiThue = db.getAllNguoiThue();
+        int tongSoNguoi = listNguoiThue != null ? listNguoiThue.size() : 0;
+        if (tvTongSoNguoiThue != null) {
+            tvTongSoNguoiThue.setText("Tổng số hồ sơ người thuê: " + tongSoNguoi);
+        }
+
         nguoiThueAdapter = new NguoiThueAdapter(this, listNguoiThue, new NguoiThueAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(ModelNguoiThue item) {
@@ -235,6 +245,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                 edtCCCD.setText(item.getCccd());
                 edtNgaySinh.setText(item.getNgaySinh());
                 dropdownPhongThue.setText(item.getPhongThue(), false);
+                edtSoLuongNguoi.setText(item.getSoLuongNguoi());
                 edtQueQuan.setText(item.getQueQuan());
                 edtNgayChuyenVao.setText(item.getNgayChuyenVao());
                 edtNgayChuyenDi.setText(item.getNgayChuyenDi());
@@ -252,6 +263,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         edtCCCD.setText("");
         edtNgaySinh.setText("");
         dropdownPhongThue.setText("", false);
+        edtSoLuongNguoi.setText("");
         edtQueQuan.setText("");
         edtNgayChuyenVao.setText("");
         edtNgayChuyenDi.setText("");

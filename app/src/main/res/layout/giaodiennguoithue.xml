@@ -144,6 +144,20 @@
                         android:inputType="none"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Số lượng người ở -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Số lượng người ở">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edtSoLuongNguoi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Quê quán -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -257,6 +271,17 @@
                 android:layout_height="wrap_content"
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Thống kê tổng số hồ sơ người thuê -->
+        <TextView
+            android:id="@+id/tvTongSoNguoiThue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tổng số hồ sơ người thuê: 0"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#2196F3"
+            android:layout_marginBottom="4dp"/>
 
         <!-- List Section Header -->
         <TextView

@@ -15,7 +15,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 10; // Tăng version lên 10 để lưu ngày sinh, ngày vào, ngày đi
+    private static final int DATABASE_VERSION = 12; // Tăng version để thêm trường số lượng người ở
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,7 +43,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlPhong);
 
-        // 3. Tạo bảng Người Thuê (Bổ sung ngaySinh, ngayChuyenVao, ngayChuyenDi)
+        // 3. Tạo bảng Người Thuê (Bổ sung ngaySinh, ngayChuyenVao, ngayChuyenDi, soLuongNguoi)
         String sqlNguoiThue = "CREATE TABLE NguoiThue (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "hoTen TEXT, " +
@@ -54,6 +54,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "ngaySinh TEXT, " +
                 "ngayChuyenVao TEXT, " +
                 "ngayChuyenDi TEXT, " +
+                "soLuongNguoi TEXT, " +
                 "username TEXT)";
         db.execSQL(sqlNguoiThue);
 
@@ -247,7 +248,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return exists;
     }
 
-    public boolean themNguoiThue(String hoTen, String sdt, String cccd, String phongThue, String queQuan, String ngaySinh, String ngayVao, String ngayDi) {
+    public boolean themNguoiThue(String hoTen, String sdt, String cccd, String phongThue, String queQuan, String ngaySinh, String ngayVao, String ngayDi, String soLuongNguoi) {
         if (checkCccdExist(cccd)) {
             return false;
         }
@@ -261,13 +262,14 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         values.put("ngaySinh", ngaySinh);
         values.put("ngayChuyenVao", ngayVao);
         values.put("ngayChuyenDi", ngayDi);
+        values.put("soLuongNguoi", soLuongNguoi);
         values.put("username", UserSession.currentUser);
         long result = db.insert("NguoiThue", null, values);
         db.close();
         return result != -1;
     }
 
-    public boolean suaNguoiThue(String oldCccd, String hoTen, String sdt, String newCccd, String phongThue, String queQuan, String ngaySinh, String ngayVao, String ngayDi) {
+    public boolean suaNguoiThue(String oldCccd, String hoTen, String sdt, String newCccd, String phongThue, String queQuan, String ngaySinh, String ngayVao, String ngayDi, String soLuongNguoi) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("hoTen", hoTen);
@@ -278,6 +280,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         values.put("ngaySinh", ngaySinh);
         values.put("ngayChuyenVao", ngayVao);
         values.put("ngayChuyenDi", ngayDi);
+        values.put("soLuongNguoi", soLuongNguoi);
         int rows = db.update("NguoiThue", values, "cccd = ? AND username = ?", new String[]{oldCccd, UserSession.currentUser});
         db.close();
         return rows > 0;
@@ -304,7 +307,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 String ngaySinh = cursor.getString(cursor.getColumnIndexOrThrow("ngaySinh"));
                 String ngayVao = cursor.getString(cursor.getColumnIndexOrThrow("ngayChuyenVao"));
                 String ngayDi = cursor.getString(cursor.getColumnIndexOrThrow("ngayChuyenDi"));
-                list.add(new ModelNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi));
+                String soLuongNguoi = cursor.getString(cursor.getColumnIndexOrThrow("soLuongNguoi"));
+                list.add(new ModelNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuongNguoi));
             } while (cursor.moveToNext());
         }
         cursor.close();
