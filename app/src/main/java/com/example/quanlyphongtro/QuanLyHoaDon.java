@@ -1,5 +1,6 @@
 package com.example.quanlyphongtro;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -19,12 +20,11 @@ import com.example.quanlyphongtro.model.ModelPhong;
 
 public class QuanLyHoaDon extends AppCompatActivity {
 
-    // Khai báo các biến giao diện
-    TextInputEditText txtMahoadon, txtDiencu, txtDienmoi, txtGiadien;
-    TextInputEditText txtNuoccu, txtNuocmoi, txtGianuoc, txtTienphong, txtPhidichvu;
+    // Khai báo các biến giao diện (Tiền phòng + Phí dịch vụ tự động lấy từ điện nước)
+    TextInputEditText txtMahoadon, txtTienphong, txtPhidichvu;
     AutoCompleteTextView txtMaphong;
     TextView txtTongtien;
-    Button btnTinh, btnThem, btnXoa, btnQuayLaiHoaDon;
+    Button btnThem, btnXoa, btnQuayLaiHoaDon;
     ListView lvHoadon;
 
     QuanLyCoSoDuLieu dbHelper;
@@ -37,24 +37,13 @@ public class QuanLyHoaDon extends AppCompatActivity {
 
         dbHelper = new QuanLyCoSoDuLieu(this);
 
-        // 1. Ánh xạ các thành phần từ XML sang Java
+        // --- 1. ÁNH XẠ CÁC THÀNH PHẦN ---
         txtMahoadon = findViewById(R.id.txtmahoadon);
         txtMaphong = findViewById(R.id.txtmaphong);
-        
-        txtDiencu = findViewById(R.id.txtdiencu);
-        txtDienmoi = findViewById(R.id.txtdienmoi);
-        txtGiadien = findViewById(R.id.txtgiadien);
-        
-        txtNuoccu = findViewById(R.id.txtnuoccu);
-        txtNuocmoi = findViewById(R.id.txtnuocmoi);
-        txtGianuoc = findViewById(R.id.txtgianuoc);
-        
         txtTienphong = findViewById(R.id.txttienphong);
         txtPhidichvu = findViewById(R.id.txtphidichvu);
-        
         txtTongtien = findViewById(R.id.txttongtien);
         
-        btnTinh = findViewById(R.id.btntinh);
         btnThem = findViewById(R.id.btnthem);
         btnXoa = findViewById(R.id.btnxoa);
         btnQuayLaiHoaDon = findViewById(R.id.btnQuayLaiHoaDon);
@@ -66,40 +55,42 @@ public class QuanLyHoaDon extends AppCompatActivity {
         // Load danh sách hóa đơn lên ListView ngay khi mở trang
         loadDanhSachHoaDon();
 
-        // Sự kiện khi người dùng chọn phòng từ dropdown -> Tự động điền số tiền phòng
+        // --- 2. KHI CHỌN PHÒNG -> TỰ ĐỘNG LẤY GIÁ THUÊ VÀ TỔNG TIỀN ĐIỆN NƯỚC DỊCH VỤ SANG ---
         txtMaphong.setOnItemClickListener((parent, view, position, id) -> {
             String selected = (String) parent.getItemAtPosition(position);
             String maPhong = selected;
             if (selected.contains(" ")) {
                 maPhong = selected.split(" ")[0].trim();
             }
+
+            // 1. Lấy giá thuê phòng từ CSDL
             int giaThue = dbHelper.getGiaThuePhong(maPhong);
             txtTienphong.setText(String.valueOf(giaThue));
+
+            // 2. Lấy tổng tiền điện nước & dịch vụ đã ghi bên quản lý điện nước
+            double tongDienNuocDichVu = dbHelper.getTongTienDienNuoc(maPhong);
+            txtPhidichvu.setText(String.valueOf(tongDienNuocDichVu));
+
+            // 3. Tự động cộng tổng tiền
+            tinhTienTuDong();
         });
 
-        // 2. Sự kiện bấm nút "Tính tiền"
-        btnTinh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tinhTienHoaDon();
-            }
-        });
-
-        // 3. Sự kiện nút "Lưu" (Thêm hóa đơn vào SQLite)
+        // --- 3. SỰ KIỆN NÚT "XÁC NHẬN HÓA ĐƠN" (Lưu vào SQLite với trạng thái "Chưa thanh toán") ---
         btnThem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String maHD = txtMahoadon.getText().toString().trim();
                 String maP = txtMaphong.getText().toString().trim();
 
-                if (maHD.isEmpty() || maP.isEmpty()) {
+                if (maHD.isEmpty() || maP.isEmpty() || maP.contains("Không có")) {
                     Toast.makeText(QuanLyHoaDon.this, "Vui lòng nhập mã hóa đơn và chọn phòng!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                boolean ketQua = dbHelper.themHoaDon(maHD, maP, tongTienHienTai);
+                tinhTienTuDong();
+                boolean ketQua = dbHelper.themHoaDon(maHD, maP, tongTienHienTai, "Chưa thanh toán");
                 if (ketQua) {
-                    Toast.makeText(QuanLyHoaDon.this, "Lưu hóa đơn thành công!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(QuanLyHoaDon.this, "Xác nhận và lưu hóa đơn thành công!", Toast.LENGTH_SHORT).show();
                     loadDanhSachHoaDon();
                     xoaTrangForm();
                 } else {
@@ -108,15 +99,41 @@ public class QuanLyHoaDon extends AppCompatActivity {
             }
         });
 
-        // 4. Sự kiện nút "Xóa" (Làm mới form)
+        // --- 4. SỰ KIỆN NÚT "XÓA" (Làm mới form) ---
         btnXoa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 xoaTrangForm();
+                Toast.makeText(QuanLyHoaDon.this, "Đã làm mới form hóa đơn", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // 5. Sự kiện nút "Quay lại"
+        // --- 5. CLICK VÀO HÓA ĐƠN TRÊN LISTVIEW ĐỂ XÁC NHẬN THANH TOÁN ---
+        lvHoadon.setOnItemClickListener((parent, view, position, id) -> {
+            List<String> listHD = dbHelper.getAllHoaDonString();
+            if (position < listHD.size()) {
+                String itemText = listHD.get(position);
+                String maHD = itemText.split("\\|")[0].replace("Mã HD:", "").trim();
+
+                new AlertDialog.Builder(QuanLyHoaDon.this)
+                        .setTitle("Cập nhật trạng thái thanh toán")
+                        .setMessage("Bạn muốn đổi trạng thái của hóa đơn " + maHD + " thành 'Đã thanh toán'?")
+                        .setPositiveButton("Đã thanh toán", (dialog, which) -> {
+                            dbHelper.updateTrangThaiHoaDon(maHD, "Đã thanh toán");
+                            Toast.makeText(QuanLyHoaDon.this, "Đã cập nhật: Đã thanh toán", Toast.LENGTH_SHORT).show();
+                            loadDanhSachHoaDon();
+                        })
+                        .setNeutralButton("Chưa thanh toán", (dialog, which) -> {
+                            dbHelper.updateTrangThaiHoaDon(maHD, "Chưa thanh toán");
+                            Toast.makeText(QuanLyHoaDon.this, "Đã cập nhật: Chưa thanh toán", Toast.LENGTH_SHORT).show();
+                            loadDanhSachHoaDon();
+                        })
+                        .setNegativeButton("Hủy", null)
+                        .show();
+            }
+        });
+
+        // --- 6. SỰ KIỆN NÚT "QUAY LẠI" ---
         btnQuayLaiHoaDon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,27 +142,24 @@ public class QuanLyHoaDon extends AppCompatActivity {
         });
     }
 
-    private void tinhTienHoaDon() {
+    private void tinhTienTuDong() {
         try {
-            double dienCu = Double.parseDouble(txtDiencu.getText().toString());
-            double dienMoi = Double.parseDouble(txtDienmoi.getText().toString());
-            double giaDien = Double.parseDouble(txtGiadien.getText().toString());
+            double tienPhong = parseDoubleSafe(txtTienphong.getText().toString());
+            double phiDichVu = parseDoubleSafe(txtPhidichvu.getText().toString());
 
-            double nuocCu = Double.parseDouble(txtNuoccu.getText().toString());
-            double nuocMoi = Double.parseDouble(txtNuocmoi.getText().toString());
-            double giaNuoc = Double.parseDouble(txtGianuoc.getText().toString());
+            tongTienHienTai = tienPhong + phiDichVu;
 
-            double tienPhong = Double.parseDouble(txtTienphong.getText().toString());
-            double phiDichVu = Double.parseDouble(txtPhidichvu.getText().toString());
+            txtTongtien.setText("Tổng tiền: " + String.format(java.util.Locale.getDefault(), "%,.0f", tongTienHienTai) + " VNĐ");
 
-            double tienDien = (dienMoi - dienCu) * giaDien;
-            double tienNuoc = (nuocMoi - nuocCu) * giaNuoc;
-            tongTienHienTai = tienPhong + tienDien + tienNuoc + phiDichVu;
+        } catch (Exception ignored) {}
+    }
 
-            txtTongtien.setText("Tổng tiền: " + tongTienHienTai + " VNĐ");
-
+    private double parseDoubleSafe(String val) {
+        if (val == null || val.isEmpty()) return 0;
+        try {
+            return Double.parseDouble(val);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ và chính xác các con số!", Toast.LENGTH_SHORT).show();
+            return 0;
         }
     }
 
@@ -158,12 +172,6 @@ public class QuanLyHoaDon extends AppCompatActivity {
     private void xoaTrangForm() {
         txtMahoadon.setText("");
         txtMaphong.setText("", false);
-        txtDiencu.setText("");
-        txtDienmoi.setText("");
-        txtGiadien.setText("");
-        txtNuoccu.setText("");
-        txtNuocmoi.setText("");
-        txtGianuoc.setText("");
         txtTienphong.setText("");
         txtPhidichvu.setText("");
         txtTongtien.setText("Tổng tiền: 0 VNĐ");

@@ -64,9 +64,8 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         edtTimKiemDienNuoc = findViewById(R.id.edtTimKiemDienNuoc);
         recyclerDanhSachDienNuoc = findViewById(R.id.recyclerDanhSachDienNuoc);
 
-        // Khởi tạo danh sách ban đầu
-        danhSachDienNuoc = new ArrayList<>();
-        hienThiDanhSach(danhSachDienNuoc);
+        // Khởi tạo danh sách từ SQLite
+        loadDanhSachDienNuocTuDB();
 
         // Nạp danh sách phòng vào dropdown
         loadDanhSachPhong();
@@ -108,7 +107,7 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         // Nút cài đặt đơn giá điện nước
         btnCaiDatGia.setOnClickListener(v -> hienThiDialogCaiDatGia());
 
-        // Nút XÁC NHẬN (Lưu/Cập nhật điện nước)
+        // Nút XÁC NHẬN (Lưu/Cập nhật điện nước vào SQLite)
         btnXacNhanDienNuoc.setOnClickListener(v -> {
             String phong = dropdownChonPhongDienNuoc.getText().toString().trim();
             String thang = edtThangGhi.getText() != null ? edtThangGhi.getText().toString().trim() : "";
@@ -116,6 +115,11 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             if (phong.isEmpty() || thang.isEmpty() || phong.contains("Không có")) {
                 Toast.makeText(this, "Vui lòng chọn phòng và nhập tháng ghi!", Toast.LENGTH_SHORT).show();
                 return;
+            }
+
+            String maP = phong;
+            if (phong.contains(" ")) {
+                maP = phong.split(" ")[0].trim();
             }
 
             double dienCu = chuyenDinhDangSo(edtDienCu.getText().toString().trim());
@@ -127,12 +131,14 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             double tienDichVu = chuyenDinhDangSo(edtTienDichVuKhac.getText().toString().trim());
             double tongTien = (soDienTieuThu * donGiaDien) + (soNuocTieuThu * donGiaNuoc) + tienDichVu;
 
-            ModelDienNuoc itemMoi = new ModelDienNuoc(phong.split(" ")[0], thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
-            danhSachDienNuoc.add(0, itemMoi);
-            
-            hienThiDanhSach(danhSachDienNuoc);
-            Toast.makeText(this, "Xác nhận và lưu chỉ số thành công!", Toast.LENGTH_SHORT).show();
-            lamMoiForm();
+            boolean check = db.themDienNuoc(maP, thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
+            if (check) {
+                Toast.makeText(this, "Lưu chỉ số điện nước thành công!", Toast.LENGTH_SHORT).show();
+                loadDanhSachDienNuocTuDB();
+                lamMoiForm();
+            } else {
+                Toast.makeText(this, "Lưu thất bại!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         // Nút Làm mới form
@@ -140,6 +146,11 @@ public class QuanLyDienNuoc extends AppCompatActivity {
 
         // Nút Quay lại
         btnQuayLaiDienNuoc.setOnClickListener(v -> finish());
+    }
+
+    private void loadDanhSachDienNuocTuDB() {
+        danhSachDienNuoc = db.getAllDienNuoc();
+        hienThiDanhSach(danhSachDienNuoc);
     }
 
     // --- TÍNH SỐ TIÊU THỤ ---
@@ -181,12 +192,13 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         tvTongTienTinhToan.setText(String.format(Locale.getDefault(), "Tổng tiền tạm tính: %,.0f VNĐ", tongTien));
     }
 
-    // --- TÌM KIẾM ĐIỆN NƯỚC (Không fill lại form khi click) ---
+    // --- TÌM KIẾM ĐIỆN NƯỚC ---
     private void timKiemDienNuoc(String tuKhoa) {
         String tuKhoaChuan = tuKhoa.toLowerCase().trim();
         List<ModelDienNuoc> danhSachKetQua = new ArrayList<>();
+        List<ModelDienNuoc> allList = db.getAllDienNuoc();
 
-        for (ModelDienNuoc item : danhSachDienNuoc) {
+        for (ModelDienNuoc item : allList) {
             if (item.getMaPhong().toLowerCase().contains(tuKhoaChuan) ||
                 item.getThangGhi().toLowerCase().contains(tuKhoaChuan)) {
                 danhSachKetQua.add(item);
@@ -194,6 +206,7 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         }
 
         dienNuocAdapter = new DienNuocAdapter(this, danhSachKetQua, null);
+        recyclerDanhSachDienNuoc.setLayoutManager(new LinearLayoutManager(this));
         recyclerDanhSachDienNuoc.setAdapter(dienNuocAdapter);
     }
 
@@ -216,7 +229,7 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         dropdownChonPhongDienNuoc.setAdapter(adapter);
     }
 
-    // --- HIỂN THỊ DANH SÁCH (Không fill lại form khi click) ---
+    // --- HIỂN THỊ DANH SÁCH ---
     private void hienThiDanhSach(List<ModelDienNuoc> list) {
         dienNuocAdapter = new DienNuocAdapter(this, list, null);
         recyclerDanhSachDienNuoc.setLayoutManager(new LinearLayoutManager(this));
