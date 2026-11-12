@@ -1,0 +1,79 @@
+package com.example.quanlyphongtro.adapter;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.List;
+
+import com.example.quanlyphongtro.R;
+import com.example.quanlyphongtro.model.ModelPhong;
+
+public class PhongAdapter extends RecyclerView.Adapter<PhongAdapter.PhongViewHolder> {
+
+    private Context context;
+    private List<ModelPhong> listPhong;
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(ModelPhong phong);
+    }
+
+    public PhongAdapter(Context context, List<ModelPhong> listPhong, OnItemClickListener listener) {
+        this.context = context;
+        this.listPhong = listPhong;
+        this.listener = listener;
+    }
+
+    @NonNull
+    @Override
+    public PhongViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_phong, parent, false);
+        return new PhongViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull PhongViewHolder holder, int position) {
+        ModelPhong phong = listPhong.get(position);
+        if (phong == null) return;
+
+        holder.tvTenPhong.setText("Phòng " + phong.getMaPhong() + " - " + phong.getTenPhong());
+        holder.tvGiaThue.setText("Giá: " + phong.getGiaThue() + " đ");
+        holder.tvTang.setText("Tầng: " + (phong.getTang() != null && !phong.getTang().isEmpty() ? phong.getTang() : "1"));
+        holder.tvDienTich.setText((phong.getDienTich() != null && !phong.getDienTich().isEmpty() ? phong.getDienTich() : "20") + " m²");
+        holder.tvTrangThai.setText(" " + phong.getTrangThai() + " ");
+
+        if (phong.getTrangThai().toLowerCase().contains("trống")) {
+            holder.tvTrangThai.setBackgroundResource(R.drawable.badge_vacant);
+        } else {
+            holder.tvTrangThai.setBackgroundResource(R.drawable.badge_occupied);
+        }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(phong);
+            }
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return listPhong != null ? listPhong.size() : 0;
+    }
+
+    public static class PhongViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTenPhong, tvGiaThue, tvTang, tvDienTich, tvTrangThai;
+
+        public PhongViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvTenPhong = itemView.findViewById(R.id.tvTenPhong);
+            tvGiaThue = itemView.findViewById(R.id.tvGiaThue);
+            tvTang = itemView.findViewById(R.id.tvTang);
+            tvDienTich = itemView.findViewById(R.id.tvDienTich);
+            tvTrangThai = itemView.findViewById(R.id.tvTrangThai);
+        }
+    }
+}

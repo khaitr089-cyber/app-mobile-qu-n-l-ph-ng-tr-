@@ -1,0 +1,61 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme: Material 3 + bảng màu "phòng trọ" (teal + đồng thau) -->
+    <style name="Base.Theme.Detai1" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Màu -->
+        <item name="colorPrimary">@color/app_primary</item>
+        <item name="colorOnPrimary">@color/app_on_primary</item>
+        <item name="colorPrimaryContainer">@color/app_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/app_on_primary_container</item>
+        <item name="colorSecondary">@color/app_primary</item>
+        <item name="colorOnSecondary">@color/app_on_primary</item>
+        <item name="colorSecondaryContainer">@color/app_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/app_on_primary_container</item>
+        <item name="colorTertiary">@color/app_brass</item>
+        <item name="colorTertiaryContainer">@color/app_brass_container</item>
+        <item name="colorOnTertiaryContainer">@color/app_on_brass_container</item>
+        <item name="colorError">@color/app_error</item>
+        <item name="colorOnError">@color/app_on_error</item>
+        <item name="colorErrorContainer">@color/app_error_container</item>
+        <item name="colorOnErrorContainer">@color/app_on_error_container</item>
+        <item name="colorSurface">@color/app_surface</item>
+        <item name="colorOnSurface">@color/app_text</item>
+        <item name="colorSurfaceVariant">@color/app_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/app_text_secondary</item>
+        <item name="colorOutline">@color/app_text_secondary</item>
+        <item name="colorOutlineVariant">@color/app_outline</item>
+        <item name="android:colorBackground">@color/app_bg</item>
+        <item name="android:windowBackground">@color/app_bg</item>
+        <item name="colorSurfaceContainer">@color/app_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/app_surface</item>
+
+        <!-- Hình khối: một hệ bo góc duy nhất -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.Large</item>
+
+        <!-- Chữ -->
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.App.Title</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.App.Section</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.App.Body</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.App.Caption</item>
+
+        <!-- Style mặc định cho từng loại component → mọi màn hình tự đồng nhất -->
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.App.Button.Outlined</item>
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
+        <item name="materialCardViewStyle">@style/Widget.App.Card</item>
+    </style>
+
+    <style name="Theme.Detai1" parent="Base.Theme.Detai1" />
+
+    <style name="Theme.Detai1.Fullscreen" parent="Theme.Detai1">
+        <item name="android:actionBarStyle">@style/Widget.Theme.Detai1.ActionBar.Fullscreen</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+    </style>
+
+    <style name="ThemeOverlay.Detai1.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
+    </style>
+</resources>

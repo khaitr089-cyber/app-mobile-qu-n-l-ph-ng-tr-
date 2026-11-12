@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== Design tokens (Dark) ===== -->
+    <color name="app_bg">#0E1514</color>
+    <color name="app_surface">#16201F</color>
+    <color name="app_surface_variant">#223130</color>
+    <color name="app_outline">#33433F</color>
+    <color name="app_outline_strong">#5F726E</color>
+    <color name="app_text">#E3ECEA</color>
+    <color name="app_text_secondary">#9BAEAA</color>
+
+    <color name="app_primary">#5CCFC6</color>
+    <color name="app_on_primary">#00302D</color>
+    <color name="app_primary_container">#0F4A46</color>
+    <color name="app_on_primary_container">#BDEFEA</color>
+
+    <color name="app_brass">#F2B066</color>
+    <color name="app_brass_container">#5A3300</color>
+    <color name="app_on_brass_container">#FFDDB5</color>
+
+    <color name="app_error">#F2B8B5</color>
+    <color name="app_on_error">#601410</color>
+    <color name="app_error_container">#5A1F1B</color>
+    <color name="app_on_error_container">#FADBD8</color>
+
+    <color name="badge_occupied">#1B7F79</color>
+    <color name="badge_vacant">#A8560A</color>
+</resources>

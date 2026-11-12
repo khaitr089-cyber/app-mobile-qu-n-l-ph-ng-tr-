@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Giữ lại màu cũ để không vỡ tham chiếu của theme Fullscreen -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="light_blue_A200">#FF40C4FF</color>
+    <color name="light_blue_A400">#FF00B0FF</color>
+    <color name="black_overlay">#66000000</color>
+
+    <!-- ===== Design tokens (Light) ===== -->
+    <color name="app_bg">#F3F6F5</color>
+    <color name="app_surface">#FFFFFF</color>
+    <color name="app_surface_variant">#E7EEEC</color>
+    <color name="app_outline">#D3DCD9</color>
+    <color name="app_outline_strong">#8A9A96</color>
+    <color name="app_text">#121D1C</color>
+    <color name="app_text_secondary">#566663</color>
+
+    <color name="app_primary">#0D6B66</color>
+    <color name="app_on_primary">#FFFFFF</color>
+    <color name="app_primary_container">#D2ECE8</color>
+    <color name="app_on_primary_container">#00302D</color>
+
+    <!-- Màu đồng thau: dùng cho trạng thái "Còn trống" (cần chú ý) -->
+    <color name="app_brass">#B45F06</color>
+    <color name="app_brass_container">#FCE8CF</color>
+    <color name="app_on_brass_container">#4A2600</color>
+
+    <color name="app_error">#B3261E</color>
+    <color name="app_on_error">#FFFFFF</color>
+    <color name="app_error_container">#FADBD8</color>
+    <color name="app_on_error_container">#410E0B</color>
+
+    <!-- Badge trạng thái phòng (chữ trắng) -->
+    <color name="badge_occupied">#0D6B66</color>
+    <color name="badge_vacant">#B45F06</color>
+</resources>
