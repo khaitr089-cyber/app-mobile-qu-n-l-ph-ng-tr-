@@ -15,7 +15,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 12; // Tăng version để thêm trường số lượng người ở
+    private static final int DATABASE_VERSION = 13; // Tăng version lên 13 để nạp đủ các cột cho bảng HopDong
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,7 +43,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlPhong);
 
-        // 3. Tạo bảng Người Thuê (Bổ sung ngaySinh, ngayChuyenVao, ngayChuyenDi, soLuongNguoi)
+        // 3. Tạo bảng Người Thuê
         String sqlNguoiThue = "CREATE TABLE NguoiThue (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "hoTen TEXT, " +
@@ -81,7 +81,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "ngayThanhToanHangThang TEXT, " +
                 "ngayThanhToanDauTien TEXT, " +
                 "ghiChu TEXT, " +
-                "trangThai TEXT)";
+                "trangThai TEXT, " +
+                "username TEXT)";
         db.execSQL(sqlHopDong);
     }
 
@@ -137,9 +138,10 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         values.put("maPhong", maPhong);
         values.put("tenPhong", tenPhong);
         try {
-            int giaThue = Integer.parseInt(giaThueStr);
+            String cleanGia = giaThueStr != null ? giaThueStr.replaceAll("[^0-9]", "") : "";
+            long giaThue = cleanGia.isEmpty() ? 0 : Long.parseLong(cleanGia);
             values.put("giaThue", giaThue);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             values.put("giaThue", 0);
         }
         values.put("trangThai", trangThai);
@@ -156,9 +158,10 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("tenPhong", tenPhong);
         try {
-            int giaThue = Integer.parseInt(giaThueStr);
+            String cleanGia = giaThueStr != null ? giaThueStr.replaceAll("[^0-9]", "") : "";
+            long giaThue = cleanGia.isEmpty() ? 0 : Long.parseLong(cleanGia);
             values.put("giaThue", giaThue);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             values.put("giaThue", 0);
         }
         values.put("trangThai", trangThai);
@@ -307,7 +310,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 String ngaySinh = cursor.getString(cursor.getColumnIndexOrThrow("ngaySinh"));
                 String ngayVao = cursor.getString(cursor.getColumnIndexOrThrow("ngayChuyenVao"));
                 String ngayDi = cursor.getString(cursor.getColumnIndexOrThrow("ngayChuyenDi"));
-                String soLuongNguoi = cursor.getString(cursor.getColumnIndexOrThrow("soLuongNguoi"));
+                String soLuongNguoi = cursor.getColumnIndex("soLuongNguoi") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("soLuongNguoi")) : "1";
                 list.add(new ModelNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuongNguoi));
             } while (cursor.moveToNext());
         }
@@ -364,6 +367,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         values.put("ngayThanhToanDauTien", ngayThanhToanDauTien);
         values.put("ghiChu", ghiChu);
         values.put("trangThai", "Đang hiệu lực");
+        values.put("username", UserSession.currentUser);
         long result = db.insert("HopDong", null, values);
         db.close();
         return result != -1;
@@ -372,26 +376,38 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
     public List<ModelHopDong> getAllHopDong() {
         List<ModelHopDong> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM HopDong", null);
-        if (cursor.moveToFirst()) {
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery("SELECT * FROM HopDong WHERE username = ?", new String[]{UserSession.currentUser});
+        } catch (Exception e) {
+            try {
+                cursor = db.rawQuery("SELECT * FROM HopDong", null);
+            } catch (Exception ex) {
+                db.close();
+                return list;
+            }
+        }
+        if (cursor != null && cursor.moveToFirst()) {
             do {
-                String maHD = cursor.getString(cursor.getColumnIndexOrThrow("maHopDong"));
-                String maP = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
-                String nguoiDD = cursor.getString(cursor.getColumnIndexOrThrow("nguoiDaiDien"));
-                String nguoiOC = cursor.getString(cursor.getColumnIndexOrThrow("nguoiOCung"));
-                String ngayBD = cursor.getString(cursor.getColumnIndexOrThrow("ngayBatDau"));
-                String ngayKT = cursor.getString(cursor.getColumnIndexOrThrow("ngayKetThuc"));
-                double gia = cursor.getDouble(cursor.getColumnIndexOrThrow("giaThue"));
-                double coc = cursor.getDouble(cursor.getColumnIndexOrThrow("tienCoc"));
-                String ngayTTThang = cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanHangThang"));
-                String ngayTTDau = cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanDauTien"));
-                String ghiChu = cursor.getString(cursor.getColumnIndexOrThrow("ghiChu"));
-                String trangThai = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
+                try {
+                    String maHD = cursor.getString(cursor.getColumnIndexOrThrow("maHopDong"));
+                    String maP = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
+                    String nguoiDD = cursor.getString(cursor.getColumnIndexOrThrow("nguoiDaiDien"));
+                    String nguoiOC = cursor.getColumnIndex("nguoiOCung") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("nguoiOCung")) : "";
+                    String ngayBD = cursor.getString(cursor.getColumnIndexOrThrow("ngayBatDau"));
+                    String ngayKT = cursor.getString(cursor.getColumnIndexOrThrow("ngayKetThuc"));
+                    double gia = cursor.getDouble(cursor.getColumnIndexOrThrow("giaThue"));
+                    double coc = cursor.getDouble(cursor.getColumnIndexOrThrow("tienCoc"));
+                    String ngayTTThang = cursor.getColumnIndex("ngayThanhToanHangThang") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanHangThang")) : "";
+                    String ngayTTDau = cursor.getColumnIndex("ngayThanhToanDauTien") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("ngayThanhToanDauTien")) : "";
+                    String ghiChu = cursor.getColumnIndex("ghiChu") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("ghiChu")) : "";
+                    String trangThai = cursor.getColumnIndex("trangThai") != -1 ? cursor.getString(cursor.getColumnIndexOrThrow("trangThai")) : "Đang hiệu lực";
 
-                list.add(new ModelHopDong(maHD, maP, nguoiDD, nguoiOC, ngayBD, ngayKT, gia, coc, ngayTTThang, ngayTTDau, ghiChu, trangThai));
+                    list.add(new ModelHopDong(maHD, maP, nguoiDD, nguoiOC, ngayBD, ngayKT, gia, coc, ngayTTThang, ngayTTDau, ghiChu, trangThai));
+                } catch (Exception ignored) {}
             } while (cursor.moveToNext());
         }
-        cursor.close();
+        if (cursor != null) cursor.close();
         db.close();
         return list;
     }
@@ -399,8 +415,12 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
     public List<String> getAllHopDongString() {
         List<String> list = new ArrayList<>();
         List<ModelHopDong> hopDongList = getAllHopDong();
-        for (ModelHopDong hd : hopDongList) {
-            list.add("HĐ: " + hd.getMaHopDong() + " | Phòng: " + hd.getMaPhong() + " | ĐD: " + hd.getNguoiDaiDien() + " (" + hd.getTrangThai() + ")");
+        if (hopDongList != null) {
+            for (ModelHopDong hd : hopDongList) {
+                if (hd != null) {
+                    list.add("HĐ: " + hd.getMaHopDong() + " | Phòng: " + hd.getMaPhong() + " | ĐD: " + hd.getNguoiDaiDien() + " (" + hd.getTrangThai() + ")");
+                }
+            }
         }
         return list;
     }

@@ -31,8 +31,8 @@ public class ManHinhDangNhap extends AppCompatActivity {
             String matKhau = txtmatkhau.getText().toString().trim();
 
             if (db.dangnhap(taiKhoan, matKhau)) {
-                // Lưu tên tài khoản hiện tại vào Session để phân quyền dữ liệu
-                UserSession.currentUser = taiKhoan;
+                // Lưu tên tài khoản hiện tại vào Session và SharedPreferences để giữ phiên làm việc
+                UserSession.saveUser(this, taiKhoan);
 
                 Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 

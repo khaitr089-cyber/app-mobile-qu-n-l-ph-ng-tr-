@@ -122,6 +122,11 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             double dienMoi = chuyenDinhDangSo(edtDienMoi.getText().toString().trim());
             double nuocCu = chuyenDinhDangSo(edtNuocCu.getText().toString().trim());
             double nuocMoi = chuyenDinhDangSo(edtNuocMoi.getText().toString().trim());
+
+            if (dienMoi < dienCu || nuocMoi < nuocCu) {
+                Toast.makeText(this, "Chỉ số điện/nước mới không được nhỏ hơn chỉ số cũ!", Toast.LENGTH_SHORT).show();
+                return;
+            }
             double soDienTieuThu = laySoDienTieuThu();
             double soNuocTieuThu = laySoNuocTieuThu();
             double tienDichVu = chuyenDinhDangSo(edtTienDichVuKhac.getText().toString().trim());

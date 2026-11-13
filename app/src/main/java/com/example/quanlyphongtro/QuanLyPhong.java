@@ -139,6 +139,8 @@ public class QuanLyPhong extends AppCompatActivity {
             public void onClick(View v) {
                 if (selectedMaPhong.isEmpty()) {
                     Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
+                } else if (dropdownTrangThai.getText().toString().contains("Đang thuê")) {
+                    Toast.makeText(QuanLyPhong.this, "Không thể xóa phòng đang có người thuê!", Toast.LENGTH_LONG).show();
                 } else {
                     boolean check = db.xoaPhong(selectedMaPhong);
                     if (check) {

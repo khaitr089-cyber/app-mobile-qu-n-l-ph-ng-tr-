@@ -101,10 +101,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                     // Gọi hàm thêm vào SQLite
                     boolean check = db.themNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuong);
                     if (check) {
-                        String maPhong = phongThue;
-                        if (phongThue.contains(" ")) {
-                            maPhong = phongThue.split(" ")[0].trim();
-                        }
+                        String maPhong = phongThue.contains(" (") ? phongThue.split(" \\(")[0].trim() : phongThue.trim();
                         db.updateTrangThaiPhong(maPhong, "Đang thuê");
 
                         Toast.makeText(QuanLyNguoiThue.this, "Thêm người thuê thành công và đã cập nhật phòng!", Toast.LENGTH_SHORT).show();
@@ -161,7 +158,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                     boolean check = db.xoaNguoiThue(selectedCccd);
                     if (check) {
                         if (!phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
-                            String maPhong = phongThueHienTai.split(" ")[0].trim();
+                            String maPhong = phongThueHienTai.contains(" (") ? phongThueHienTai.split(" \\(")[0].trim() : phongThueHienTai.trim();
                             db.updateTrangThaiPhong(maPhong, "Còn trống");
                         }
 
