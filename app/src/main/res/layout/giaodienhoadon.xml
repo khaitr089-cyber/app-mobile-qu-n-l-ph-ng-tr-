@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header with Title and Top-Right Back Button -->
+        <!-- Header với Nút Quay lại -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,8 +24,8 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_alignParentStart="true"
-                android:text="QUẢN LÝ HÓA ĐƠN"
-                android:textSize="18sp"
+                android:text="LẬP HÓA ĐƠN &amp; VIETQR"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
 
@@ -46,7 +46,7 @@
                 android:padding="8dp"/>
         </RelativeLayout>
 
-        <!-- Form nhập liệu thông tin hóa đơn và chỉ số -->
+        <!-- Form lập hóa đơn tự động -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:hint="Mã hóa đơn">
+                android:hint="Mã hóa đơn (VD: HD101-11)">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/txtmahoadon"
                     android:layout_width="match_parent"
@@ -72,8 +72,8 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:hint="Chọn phòng đang cho thuê">
+                android:layout_marginBottom="16dp"
+                android:hint="Chọn phòng cho thuê">
                 <AutoCompleteTextView
                     android:id="@+id/txtmaphong"
                     android:layout_width="match_parent"
@@ -81,195 +81,126 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Chỉ số Điện -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chỉ số Điện &amp; Đơn giá"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"/>
-
-            <LinearLayout
+            <!-- Card Tổng hợp chi tiết tiền (Auto-Fetched Breakdown) -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="#E3F2FD">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="2dp"
-                    android:hint="Điện cũ">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtdiencu"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📊 CHI TIẾT TÍNH TIỀN TỰ ĐỘNG"
+                        android:textStyle="bold"
+                        android:textColor="#0D47A1"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:hint="Điện mới">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtdienmoi"
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🏠 Tiền thuê phòng:"
+                            android:textColor="#333333"/>
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/txttienphong"
+                            android:layout_width="120dp"
+                            android:layout_height="36dp"
+                            android:background="@android:color/white"
+                            android:padding="4dp"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:inputType="numberDecimal"
+                            android:hint="0"/>
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="2dp"
-                    android:hint="Giá điện">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtgiadien"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="⚡ Tiền điện nước dịch vụ (Auto từ trang Điện Nước):"
+                            android:textColor="#333333"/>
 
-            <!-- Chỉ số Nước -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chỉ số Nước &amp; Đơn giá"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"/>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/txtphidichvu"
+                            android:layout_width="120dp"
+                            android:layout_height="36dp"
+                            android:background="@android:color/white"
+                            android:padding="4dp"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:inputType="numberDecimal"
+                            android:hint="0"/>
+                    </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="2dp"
-                    android:hint="Nước cũ">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtnuoccu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:hint="Nước mới">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtnuocmoi"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="2dp"
-                    android:hint="Giá nước">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtgianuoc"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <!-- Tiền phòng & Phí dịch vụ -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:hint="Tiền phòng">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txttienphong"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:hint="Phí dịch vụ">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/txtphidichvu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <!-- Hiển thị Tổng tiền -->
             <TextView
                 android:id="@+id/txttongtien"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tổng tiền: 0 VNĐ"
-                android:textSize="18sp"
+                android:text="TỔNG TIỀN: 0 VNĐ"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#F44336"
+                android:textColor="#D32F2F"
                 android:layout_marginBottom="16dp"
-                android:gravity="end"/>
+                android:gravity="center"/>
 
-            <!-- Các nút chức năng -->
+            <!-- Các nút hành động chính -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-
-                <Button
-                    android:id="@+id/btntinh"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Tính tiền"
-                    android:backgroundTint="#FF9800"/>
+                android:orientation="vertical">
 
                 <Button
                     android:id="@+id/btnthem"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:text="Lưu"
-                    android:backgroundTint="#4CAF50"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="LƯU &amp; XÁC NHẬN HÓA ĐƠN"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#4CAF50"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/btnVietQR"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="📱 TẠO MÃ VIETQR &amp; GỬI ZALO/SMS"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#0288D1"
+                    android:layout_marginBottom="8dp"/>
 
                 <Button
                     android:id="@+id/btnxoa"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Xóa"
-                    android:backgroundTint="#F44336"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Làm Mới Form"
+                    android:backgroundTint="#757575"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -277,7 +208,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Danh Sách Hóa Đơn"
+            android:text="Danh Sách Hóa Đơn Đã Lập"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"

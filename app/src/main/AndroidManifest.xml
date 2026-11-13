@@ -28,7 +28,7 @@
             android:exported="true" />
         <activity android:name=".QuanLyPhong" />
         <activity android:name=".QuanLyNguoiThue" />
-        <activity android:name=".QuanLyHoaDon" />
+        <activity android:name=".QuanLyHoaDon" android:exported="true" />
         <activity android:name=".QuanLyHopDong" />
         <activity android:name=".QuanLyDienNuoc" />
         <activity android:name=".QuanLyThuChi" android:exported="true" />
