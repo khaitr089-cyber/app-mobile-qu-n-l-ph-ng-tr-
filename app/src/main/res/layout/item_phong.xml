@@ -3,80 +3,98 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardBackgroundColor="@color/bg_card">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:orientation="horizontal"
+        android:padding="14dp"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/tvTenPhong"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Phòng P101 - Phòng đơn"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="4dp"/>
-
+        <!-- Left color accent bar + icon -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="6dp">
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_icon_circle"
+            android:gravity="center"
+            android:layout_marginEnd="12dp">
 
-            <TextView
-                android:id="@+id/tvGiaThue"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Giá: 3.500.000 đ"
-                android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"/>
-
-            <TextView
-                android:id="@+id/tvTang"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tầng: 1"
-                android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginEnd="12dp"/>
-
-            <TextView
-                android:id="@+id/tvDienTich"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="20 m²"
-                android:textSize="13sp"
-                android:textColor="@android:color/darker_gray"/>
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_room"
+                app:tint="@color/primary"/>
         </LinearLayout>
 
+        <!-- Info -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvTrangThai"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvTenPhong"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" Đang thuê "
-                android:textSize="11sp"
+                android:text="Phòng P101 - Phòng đơn"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:background="@drawable/badge_purple"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"/>
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvGiaThue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="3.500.000 đ/tháng"
+                    android:textSize="13sp"
+                    android:textColor="@color/accent_green"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/tvTang"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tầng 1"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvDienTich"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="20 m²"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- Badge -->
+        <TextView
+            android:id="@+id/tvTrangThai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đang thuê"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:background="@drawable/badge_purple"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
