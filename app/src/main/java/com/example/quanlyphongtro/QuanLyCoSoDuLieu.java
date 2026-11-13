@@ -18,7 +18,7 @@ import com.example.quanlyphongtro.model.ModelThuChi;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 17; // Tăng version lên 17 để cập nhật thông tin Chủ nhà Bên A và Lịch sử Thu Chi
+    private static final int DATABASE_VERSION = 18; // Tăng version lên 18 để linh hoạt khớp mã phòng Điện Nước & Hóa Đơn
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -325,7 +325,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
     public int getGiaThuePhong(String maPhong) {
         int giaThue = 0;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT giaThue FROM PhongTro WHERE maPhong = ? AND username = ?", new String[]{maPhong, UserSession.currentUser});
+        String maClean = maPhong.contains(" ") ? maPhong.split(" ")[0].trim() : maPhong.trim();
+        Cursor cursor = db.rawQuery("SELECT giaThue FROM PhongTro WHERE (maPhong = ? OR maPhong LIKE ?) AND username = ?", new String[]{maClean, maClean + " %", UserSession.currentUser});
         if (cursor.moveToFirst()) {
             giaThue = cursor.getInt(cursor.getColumnIndexOrThrow("giaThue"));
         }
@@ -412,11 +413,12 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- PHÂN HỆ 5: QUẢN LÝ ĐIỆN NƯỚC (NÂNG CẤP LẤY CHỈ SỐ CŨ CỦA THÁNG TRƯỚC) ---
+    // --- PHÂN HỆ 5: QUẢN LÝ ĐIỆN NƯỚC (TRUY VẤN LINH HOẠT THEO MÃ PHÒNG) ---
     public double[] getChisoDienNuocMoiNhatByMaPhong(String maPhong) {
         double[] chiso = new double[]{0, 0}; // [dienMoi, nuocMoi]
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT dienMoi, nuocMoi FROM DienNuoc WHERE maPhong = ? AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maPhong, UserSession.currentUser});
+        String maClean = maPhong.contains(" ") ? maPhong.split(" ")[0].trim() : maPhong.trim();
+        Cursor cursor = db.rawQuery("SELECT dienMoi, nuocMoi FROM DienNuoc WHERE (maPhong = ? OR maPhong LIKE ?) AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maClean, maClean + " %", UserSession.currentUser});
         if (cursor.moveToFirst()) {
             chiso[0] = cursor.getDouble(0);
             chiso[1] = cursor.getDouble(1);
@@ -424,6 +426,27 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return chiso;
+    }
+
+    public ModelDienNuoc getDienNuocChiTietByMaPhong(String maPhong) {
+        ModelDienNuoc dn = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String maClean = maPhong.contains(" ") ? maPhong.split(" ")[0].trim() : maPhong.trim();
+        Cursor cursor = db.rawQuery("SELECT * FROM DienNuoc WHERE (maPhong = ? OR maPhong LIKE ?) AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maClean, maClean + " %", UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            String mP = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
+            String thang = cursor.getString(cursor.getColumnIndexOrThrow("thangGhi"));
+            double dienCu = cursor.getDouble(cursor.getColumnIndexOrThrow("dienCu"));
+            double dienMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("dienMoi"));
+            double nuocCu = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocCu"));
+            double nuocMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocMoi"));
+            double tienDichVu = cursor.getDouble(cursor.getColumnIndexOrThrow("tienDichVu"));
+            double tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
+            dn = new ModelDienNuoc(mP, thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
+        }
+        cursor.close();
+        db.close();
+        return dn;
     }
 
     public boolean themDienNuoc(String maPhong, String thangGhi, double dienCu, double dienMoi, double nuocCu, double nuocMoi, double tienDichVu, double tongTien) {
@@ -468,7 +491,8 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
     public double getTongTienDienNuoc(String maPhong) {
         double tongTien = 0;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT tongTien FROM DienNuoc WHERE maPhong = ? AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maPhong, UserSession.currentUser});
+        String maClean = maPhong.contains(" ") ? maPhong.split(" ")[0].trim() : maPhong.trim();
+        Cursor cursor = db.rawQuery("SELECT tongTien FROM DienNuoc WHERE (maPhong = ? OR maPhong LIKE ?) AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maClean, maClean + " %", UserSession.currentUser});
         if (cursor.moveToFirst()) {
             tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
         }

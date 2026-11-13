@@ -64,12 +64,24 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         edtTimKiemDienNuoc = findViewById(R.id.edtTimKiemDienNuoc);
         recyclerDanhSachDienNuoc = findViewById(R.id.recyclerDanhSachDienNuoc);
 
-        // Khởi tạo danh sách ban đầu
-        danhSachDienNuoc = new ArrayList<>();
-        hienThiDanhSach(danhSachDienNuoc);
+        // Khởi tạo danh sách ban đầu từ CSDL
+        loadDanhSachDienNuoc();
 
         // Nạp danh sách phòng vào dropdown
         loadDanhSachPhong();
+
+        dropdownChonPhongDienNuoc.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = (String) parent.getItemAtPosition(position);
+            if (selected != null && !selected.contains("Không có")) {
+                String maPhong = selected.split(" ")[0].trim();
+                double[] chisoCu = db.getChisoDienNuocMoiNhatByMaPhong(maPhong);
+                if (chisoCu[0] > 0 || chisoCu[1] > 0) {
+                    edtDienCu.setText(String.valueOf((long) chisoCu[0]));
+                    edtNuocCu.setText(String.valueOf((long) chisoCu[1]));
+                    Toast.makeText(this, "Đã tự động nạp chỉ số điện/nước cũ tháng trước!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // Tự động tính tiền khi người dùng nhập liệu chỉ số cũ/mới hoặc dịch vụ
         TextWatcher boTheoDoiNhapLieu = new TextWatcher() {
@@ -132,12 +144,16 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             double tienDichVu = chuyenDinhDangSo(edtTienDichVuKhac.getText().toString().trim());
             double tongTien = (soDienTieuThu * donGiaDien) + (soNuocTieuThu * donGiaNuoc) + tienDichVu;
 
-            ModelDienNuoc itemMoi = new ModelDienNuoc(phong.split(" ")[0], thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
-            danhSachDienNuoc.add(0, itemMoi);
+            String maClean = phong.split(" ")[0].trim();
+            boolean saveDb = db.themDienNuoc(maClean, thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
             
-            hienThiDanhSach(danhSachDienNuoc);
-            Toast.makeText(this, "Xác nhận và lưu chỉ số thành công!", Toast.LENGTH_SHORT).show();
-            lamMoiForm();
+            if (saveDb) {
+                loadDanhSachDienNuoc();
+                Toast.makeText(this, "Xác nhận và lưu chỉ số điện nước vào CSDL thành công!", Toast.LENGTH_SHORT).show();
+                lamMoiForm();
+            } else {
+                Toast.makeText(this, "Lưu vào CSDL thất bại!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         // Nút Làm mới form
@@ -145,6 +161,12 @@ public class QuanLyDienNuoc extends AppCompatActivity {
 
         // Nút Quay lại
         btnQuayLaiDienNuoc.setOnClickListener(v -> finish());
+    }
+
+    private void loadDanhSachDienNuoc() {
+        danhSachDienNuoc = db.getAllDienNuoc();
+        if (danhSachDienNuoc == null) danhSachDienNuoc = new ArrayList<>();
+        hienThiDanhSach(danhSachDienNuoc);
     }
 
     // --- TÍNH SỐ TIÊU THỤ ---

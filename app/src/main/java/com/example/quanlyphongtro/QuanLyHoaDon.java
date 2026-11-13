@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -75,9 +74,18 @@ public class QuanLyHoaDon extends AppCompatActivity {
             double tongDienNuocDichVu = dbHelper.getTongTienDienNuoc(maPhong);
             txtPhidichvu.setText(String.valueOf((long) tongDienNuocDichVu));
 
+            // C. Tự động sinh mã hóa đơn HD-MaPhong-Month
+            java.text.SimpleDateFormat sdfMonth = new java.text.SimpleDateFormat("MM-yyyy", java.util.Locale.getDefault());
+            txtMahoadon.setText("HD-" + maPhong + "-" + sdfMonth.format(new java.util.Date()));
+
             // Tự động tính ra tổng tiền hóa đơn ngay lập tức
             tinhTienTuDong();
-            Toast.makeText(QuanLyHoaDon.this, "Đã tự động tải tiền phòng và chỉ số điện nước mới nhất!", Toast.LENGTH_SHORT).show();
+
+            if (tongDienNuocDichVu > 0) {
+                Toast.makeText(QuanLyHoaDon.this, "Đã tự động lấy tiền phòng và tiền điện nước đã chốt!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(QuanLyHoaDon.this, "Đã lấy tiền phòng! (Lưu ý: Chưa thấy dữ liệu chốt Điện Nước phòng " + maPhong + ")", Toast.LENGTH_LONG).show();
+            }
         });
 
         // Bổ sung TextWatcher để khi sửa tiền phòng hoặc phí dịch vụ thì tổng tiền tự đổi
