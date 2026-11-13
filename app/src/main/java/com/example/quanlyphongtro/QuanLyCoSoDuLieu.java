@@ -16,7 +16,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 13; // Tăng version lên 13 để nạp lại đầy đủ các bảng bao gồm DienNuoc
+    private static final int DATABASE_VERSION = 14; // Tăng version lên 14 để nâng cấp đầy đủ 8 phân hệ
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -24,7 +24,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // 1. Tạo bảng Người Dùng
+        // 1. Tạo bảng Người Dùng (Phân hệ 1)
         String sqlUser = "CREATE TABLE NguoiDung (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "tenDangNhap TEXT UNIQUE, " +
@@ -32,7 +32,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         db.execSQL(sqlUser);
         db.execSQL("INSERT INTO NguoiDung(tenDangNhap, matKhau) VALUES('admin', '123456')");
 
-        // 2. Tạo bảng Phòng Trọ
+        // 2. Tạo bảng Phòng Trọ (Phân hệ 2)
         String sqlPhong = "CREATE TABLE PhongTro (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maPhong TEXT, " +
@@ -41,10 +41,12 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "trangThai TEXT, " +
                 "tang TEXT, " +
                 "dienTich TEXT, " +
+                "sucChua TEXT, " +
+                "ghiChuThietBi TEXT, " +
                 "username TEXT)";
         db.execSQL(sqlPhong);
 
-        // 3. Tạo bảng Người Thuê (Bổ sung ngaySinh, ngayChuyenVao, ngayChuyenDi, soLuongNguoi)
+        // 3. Tạo bảng Người Thuê (Phân hệ 3)
         String sqlNguoiThue = "CREATE TABLE NguoiThue (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "hoTen TEXT, " +
@@ -53,23 +55,31 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "phongThue TEXT, " +
                 "queQuan TEXT, " +
                 "ngaySinh TEXT, " +
+                "gioiTinh TEXT, " +
                 "ngayChuyenVao TEXT, " +
                 "ngayChuyenDi TEXT, " +
                 "soLuongNguoi TEXT, " +
                 "username TEXT)";
         db.execSQL(sqlNguoiThue);
 
-        // 4. Tạo bảng Hóa Đơn
+        // 4. Tạo bảng Hóa Đơn & Thanh Toán (Phân hệ 6 & 7)
         String sqlHoaDon = "CREATE TABLE HoaDon (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maHoaDon TEXT UNIQUE, " +
                 "maPhong TEXT, " +
                 "tongTien REAL, " +
+                "daThanhToan REAL, " +
+                "congNo REAL, " +
+                "phuThu REAL, " +
+                "giamTru REAL, " +
+                "phuongThucTT TEXT, " +
+                "hanThanhToan TEXT, " +
                 "trangThai TEXT, " +
+                "lyDoHuy TEXT, " +
                 "username TEXT)";
         db.execSQL(sqlHoaDon);
 
-        // 5. Tạo bảng Hợp Đồng
+        // 5. Tạo bảng Hợp Đồng (Phân hệ 4)
         String sqlHopDong = "CREATE TABLE HopDong (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maHopDong TEXT UNIQUE, " +
@@ -86,7 +96,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "trangThai TEXT)";
         db.execSQL(sqlHopDong);
 
-        // 6. Tạo bảng Điện Nước Dịch Vụ
+        // 6. Tạo bảng Điện Nước Dịch Vụ (Phân hệ 5)
         String sqlDienNuoc = "CREATE TABLE DienNuoc (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maPhong TEXT, " +
@@ -112,7 +122,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // --- CÁC HÀM XỬ LÝ NGƯỜI DÙNG ---
+    // --- PHÂN HỆ 1: TÀI KHOẢN ---
     public boolean dangnhap(String taiKhoan, String matKhau) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -135,7 +145,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    // --- CÁC HÀM XỬ LÝ PHÒNG TRỌ ---
+    // --- PHÂN HỆ 2: QUẢN LÝ PHÒNG TRỌ ---
     public boolean checkMaPhongExist(String maPhong) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM PhongTro WHERE maPhong = ? AND username = ?", new String[]{maPhong, UserSession.currentUser});
@@ -255,7 +265,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return giaThue;
     }
 
-    // --- CÁC HÀM XỬ LÝ NGƯỜI THUÊ ---
+    // --- PHÂN HỆ 3: QUẢN LÝ NGƯỜI THUÊ ---
     public boolean checkCccdExist(String cccd) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM NguoiThue WHERE cccd = ? AND username = ?", new String[]{cccd, UserSession.currentUser});
@@ -333,7 +343,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- CÁC HÀM XỬ LÝ HÓA ĐƠN ---
+    // --- PHÂN HỆ 6 & 7: QUẢN LÝ HÓA ĐƠN, THANH TOÁN & CÔNG NỢ ---
     public boolean themHoaDon(String maHoaDon, String maPhong, double tongTien, String trangThai) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -341,6 +351,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         values.put("maPhong", maPhong);
         values.put("tongTien", tongTien);
         values.put("trangThai", trangThai);
+        values.put("congNo", trangThai.contains("Chưa") ? tongTien : 0);
         values.put("username", UserSession.currentUser);
         long result = db.insert("HoaDon", null, values);
         db.close();
@@ -351,6 +362,9 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("trangThai", trangThaiMoi);
+        if (trangThaiMoi.contains("Đã thanh toán")) {
+            values.put("congNo", 0);
+        }
         int rows = db.update("HoaDon", values, "maHoaDon = ? AND username = ?", new String[]{maHoaDon, UserSession.currentUser});
         db.close();
         return rows > 0;
@@ -374,7 +388,19 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- CÁC HÀM XỬ LÝ HỢP ĐỒNG ---
+    public double getTongCongNo() {
+        double tongCongNo = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT SUM(congNo) FROM HoaDon WHERE username = ? AND trangThai != 'Đã hủy'", new String[]{UserSession.currentUser});
+        if (cursor.moveToFirst() && !cursor.isNull(0)) {
+            tongCongNo = cursor.getDouble(0);
+        }
+        cursor.close();
+        db.close();
+        return tongCongNo;
+    }
+
+    // --- PHÂN HỆ 4: QUẢN LÝ HỢP ĐỒNG ---
     public boolean themHopDongChiTiet(String maHopDong, String maPhong, String nguoiDaiDien, String nguoiOCung,
                                        String ngayBatDau, String ngayKetThuc, double giaThue, double tienCoc,
                                        String ngayThanhToanHangThang, String ngayThanhToanDauTien, String ghiChu) {
@@ -395,6 +421,28 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         long result = db.insert("HopDong", null, values);
         db.close();
         return result != -1;
+    }
+
+    public boolean giaHanHopDong(String maHopDong, String ngayKetThucMoi) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("ngayKetThuc", ngayKetThucMoi);
+        values.put("trangThai", "Đang hiệu lực");
+        int rows = db.update("HopDong", values, "maHopDong = ?", new String[]{maHopDong});
+        db.close();
+        return rows > 0;
+    }
+
+    public boolean ketThucHopDong(String maHopDong, String maPhong) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("trangThai", "Đã kết thúc");
+        int rows = db.update("HopDong", values, "maHopDong = ?", new String[]{maHopDong});
+        if (rows > 0) {
+            updateTrangThaiPhong(maPhong, "Còn trống");
+        }
+        db.close();
+        return rows > 0;
     }
 
     public List<ModelHopDong> getAllHopDong() {
@@ -433,7 +481,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- CÁC HÀM XỬ LÝ ĐIỆN NƯỚC DỊCH VỤ ---
+    // --- PHÂN HỆ 5: QUẢN LÝ ĐIỆN NƯỚC DỊCH VỤ ---
     public boolean themDienNuoc(String maPhong, String thangGhi, double dienCu, double dienMoi, double nuocCu, double nuocMoi, double tienDichVu, double tongTien) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
