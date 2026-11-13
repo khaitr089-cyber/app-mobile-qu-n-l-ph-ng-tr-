@@ -3,7 +3,10 @@ package com.example.quanlyphongtro;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -11,9 +14,13 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
+
 import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.example.quanlyphongtro.adapter.PhongAdapter;
 import com.example.quanlyphongtro.model.ModelPhong;
@@ -28,9 +35,11 @@ public class QuanLyPhong extends AppCompatActivity {
     QuanLyCoSoDuLieu db;
     List<ModelPhong> listPhong;
     PhongAdapter phongAdapter;
-
-    // Biến lưu mã phòng đang được chọn để Sửa hoặc Xóa chính xác đối tượng đang chọn
     private String selectedMaPhong = "";
+
+    // Luồng xử lý bất đồng bộ (Executor) và Handler giao diện
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +48,7 @@ public class QuanLyPhong extends AppCompatActivity {
 
         db = new QuanLyCoSoDuLieu(this);
 
-        // --- BƯỚC 1: ÁNH XẠ CÁC VIEW TỪ XML SANG JAVA ---
+        // --- 1. ÁNH XẠ CÁC VIEW ---
         edtMaPhong = findViewById(R.id.edtMaPhong);
         dropdownLoaiPhong = findViewById(R.id.dropdownLoaiPhong);
         edtGiaThue = findViewById(R.id.edtGiaThue);
@@ -55,17 +64,17 @@ public class QuanLyPhong extends AppCompatActivity {
         btnQuayLaiPhong = findViewById(R.id.btnQuayLaiPhong);
         recyclerDanhSachPhong = findViewById(R.id.recyclerDanhSachPhong);
 
-        // Thiết lập dữ liệu cho Dropdown Loại Phòng
+        // Thiết lập Dropdown Loại Phòng
         String[] loaiPhongArray = new String[]{"Phòng đơn", "Phòng đôi", "Studio"};
         ArrayAdapter<String> adapterLoaiPhong = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, loaiPhongArray);
         dropdownLoaiPhong.setAdapter(adapterLoaiPhong);
 
-        // Thiết lập dữ liệu cho Dropdown Trạng Thái
+        // Thiết lập Dropdown Trạng Thái
         String[] trangThaiArray = new String[]{"Còn trống", "Đang thuê"};
         ArrayAdapter<String> adapterTrangThai = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, trangThaiArray);
         dropdownTrangThai.setAdapter(adapterTrangThai);
 
-        // Load danh sách phòng từ SQLite
+        // Tải danh sách phòng
         loadDanhSachPhong("");
 
         // Nút lọc phòng nhanh
@@ -77,157 +86,159 @@ public class QuanLyPhong extends AppCompatActivity {
         if (btnLocPhongTrong != null) btnLocPhongTrong.setOnClickListener(v -> loadPhongTheoTrangThai("trống"));
         if (btnLocDangThue != null) btnLocDangThue.setOnClickListener(v -> loadPhongTheoTrangThai("đang thuê"));
 
-        // --- BƯỚC 2: TÍNH NĂNG TÌM KIẾM PHÒNG (F05) ---
-        edtTimKiemPhong.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        // --- 2. THUẬT TOÁN DEBOUNCE 250MS TÌM KIẾM TỐI ƯU ---
+        Handler debounceHandler = new Handler(Looper.getMainLooper());
+        Runnable searchRunnable = () -> {
+            String keyword = edtTimKiemPhong.getText() != null ? edtTimKiemPhong.getText().toString().trim() : "";
+            loadDanhSachPhong(keyword);
+        };
 
+        edtTimKiemPhong.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String keyword = s.toString().trim();
-                loadDanhSachPhong(keyword);
+                debounceHandler.removeCallbacks(searchRunnable);
+                debounceHandler.postDelayed(searchRunnable, 250); // Trì hoãn 250ms tránh giật lag khi gõ
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        // --- BƯỚC 3: THÊM PHÒNG VÀO SQLITE (Kiểm tra trùng mã phòng) ---
-        btnThemPhong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String ma = edtMaPhong.getText().toString().trim();
-                String ten = dropdownLoaiPhong.getText().toString().trim();
-                String gia = edtGiaThue.getText().toString().trim();
-                String tt = dropdownTrangThai.getText().toString().trim();
-                String tang = edtTang.getText().toString().trim();
-                String dienTich = edtDienTich.getText().toString().trim();
+        // --- 3. THÊM PHÒNG ---
+        btnThemPhong.setOnClickListener(v -> {
+            String ma = edtMaPhong.getText() != null ? edtMaPhong.getText().toString().trim() : "";
+            String ten = dropdownLoaiPhong.getText().toString().trim();
+            String gia = edtGiaThue.getText() != null ? edtGiaThue.getText().toString().trim() : "";
+            String tt = dropdownTrangThai.getText().toString().trim();
+            String tang = edtTang.getText() != null ? edtTang.getText().toString().trim() : "";
+            String dienTich = edtDienTich.getText() != null ? edtDienTich.getText().toString().trim() : "";
 
-                if (ma.isEmpty() || gia.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng nhập mã phòng và giá thuê!", Toast.LENGTH_SHORT).show();
-                } else {
+            if (ma.isEmpty() || gia.isEmpty()) {
+                Toast.makeText(QuanLyPhong.this, "Vui lòng nhập mã phòng và giá thuê!", Toast.LENGTH_SHORT).show();
+            } else {
+                executor.execute(() -> {
                     boolean check = db.themPhong(ma, ten, gia, tt, tang, dienTich);
-                    if (check) {
-                        Toast.makeText(QuanLyPhong.this, "Thêm phòng thành công!", Toast.LENGTH_SHORT).show();
-                        loadDanhSachPhong("");
-                        lamMoiForm();
-                    } else {
-                        Toast.makeText(QuanLyPhong.this, "Thêm thất bại (Mã phòng đã tồn tại)!", Toast.LENGTH_SHORT).show();
-                    }
-                }
+                    mainHandler.post(() -> {
+                        if (check) {
+                            Toast.makeText(QuanLyPhong.this, "Thêm phòng thành công!", Toast.LENGTH_SHORT).show();
+                            loadDanhSachPhong("");
+                            lamMoiForm();
+                        } else {
+                            Toast.makeText(QuanLyPhong.this, "Thêm thất bại (Mã phòng đã tồn tại)!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
         });
 
-        // --- BƯỚC 4: SỬA THÔNG TIN PHÒNG TRONG SQLITE (Dựa vào selectedMaPhong đang chọn) ---
-        btnSuaPhong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (selectedMaPhong.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần sửa từ danh sách!", Toast.LENGTH_SHORT).show();
-                } else {
-                    String ten = dropdownLoaiPhong.getText().toString().trim();
-                    String gia = edtGiaThue.getText().toString().trim();
-                    String tt = dropdownTrangThai.getText().toString().trim();
-                    String tang = edtTang.getText().toString().trim();
-                    String dienTich = edtDienTich.getText().toString().trim();
+        // --- 4. SỬA PHÒNG ---
+        btnSuaPhong.setOnClickListener(v -> {
+            if (selectedMaPhong.isEmpty()) {
+                Toast.makeText(QuanLyPhong.this, "Vui lòng chọn 1 phòng trong danh sách để sửa!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String ma = selectedMaPhong;
+            String ten = dropdownLoaiPhong.getText().toString().trim();
+            String gia = edtGiaThue.getText() != null ? edtGiaThue.getText().toString().trim() : "";
+            String tt = dropdownTrangThai.getText().toString().trim();
+            String tang = edtTang.getText() != null ? edtTang.getText().toString().trim() : "";
+            String dienTich = edtDienTich.getText() != null ? edtDienTich.getText().toString().trim() : "";
 
-                    boolean check = db.suaPhong(selectedMaPhong, ten, gia, tt, tang, dienTich);
+            executor.execute(() -> {
+                boolean check = db.suaPhong(ma, ten, gia, tt, tang, dienTich);
+                mainHandler.post(() -> {
                     if (check) {
-                        Toast.makeText(QuanLyPhong.this, "Sửa phòng thành công!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(QuanLyPhong.this, "Cập nhật thông tin phòng thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachPhong("");
                         lamMoiForm();
                     } else {
                         Toast.makeText(QuanLyPhong.this, "Sửa thất bại!", Toast.LENGTH_SHORT).show();
                     }
-                }
-            }
+                });
+            });
         });
 
-        // --- BƯỚC 5: XÓA PHÒNG KHỎI SQLITE (Chỉ xóa đúng phòng đang chọn) ---
-        btnXoaPhong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (selectedMaPhong.isEmpty()) {
-                    Toast.makeText(QuanLyPhong.this, "Vui lòng chọn phòng cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
-                } else if (dropdownTrangThai.getText().toString().contains("Đang thuê")) {
-                    Toast.makeText(QuanLyPhong.this, "Không thể xóa phòng đang có người thuê!", Toast.LENGTH_LONG).show();
-                } else {
-                    boolean check = db.xoaPhong(selectedMaPhong);
+        // --- 5. XÓA PHÒNG ---
+        btnXoaPhong.setOnClickListener(v -> {
+            if (selectedMaPhong.isEmpty()) {
+                Toast.makeText(QuanLyPhong.this, "Vui lòng chọn 1 phòng trong danh sách để xóa!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            executor.execute(() -> {
+                boolean check = db.xoaPhong(selectedMaPhong);
+                mainHandler.post(() -> {
                     if (check) {
-                        Toast.makeText(QuanLyPhong.this, "Xóa phòng thành công!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(QuanLyPhong.this, "Đã xóa phòng thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachPhong("");
                         lamMoiForm();
                     } else {
                         Toast.makeText(QuanLyPhong.this, "Xóa thất bại!", Toast.LENGTH_SHORT).show();
                     }
-                }
-            }
+                });
+            });
         });
 
-        // --- BƯỚC 6: LÀM MỚI FORM ---
-        btnLamMoiPhong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lamMoiForm();
-                Toast.makeText(QuanLyPhong.this, "Đã làm mới form", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // --- BƯỚC 7: QUAY LẠI MÀN HÌNH CHÍNH ---
-        btnQuayLaiPhong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        // --- 6. LÀM MỚI FORM & QUAY LẠI ---
+        btnLamMoiPhong.setOnClickListener(v -> lamMoiForm());
+        btnQuayLaiPhong.setOnClickListener(v -> finish());
     }
 
-    // --- HÀM TẢI LỌC THEO TRẠNG THÁI ---
+    // --- HÀM TẢI LỌC THEO TRẠNG THÁI (BẤT ĐỒNG BỘ) ---
     private void loadPhongTheoTrangThai(String tt) {
-        listPhong = db.getPhongByTrangThai(tt);
-        if (listPhong == null) listPhong = new ArrayList<>();
-        phongAdapter = new PhongAdapter(this, listPhong, phong -> {
-            selectedMaPhong = phong.getMaPhong();
-            edtMaPhong.setText(phong.getMaPhong());
-            edtMaPhong.setEnabled(false);
-            dropdownLoaiPhong.setText(phong.getTenPhong(), false);
-            edtGiaThue.setText(phong.getGiaThue());
-            edtTang.setText(phong.getTang());
-            edtDienTich.setText(phong.getDienTich());
-            dropdownTrangThai.setText(phong.getTrangThai(), false);
+        executor.execute(() -> {
+            List<ModelPhong> resultList = db.getPhongByTrangThai(tt);
+            if (resultList == null) resultList = new ArrayList<>();
+            List<ModelPhong> finalResultList = resultList;
+
+            mainHandler.post(() -> {
+                listPhong = finalResultList;
+                phongAdapter = new PhongAdapter(this, listPhong, phong -> {
+                    selectedMaPhong = phong.getMaPhong();
+                    edtMaPhong.setText(phong.getMaPhong());
+                    edtMaPhong.setEnabled(false);
+                    dropdownLoaiPhong.setText(phong.getTenPhong(), false);
+                    edtGiaThue.setText(phong.getGiaThue());
+                    edtTang.setText(phong.getTang());
+                    edtDienTich.setText(phong.getDienTich());
+                    dropdownTrangThai.setText(phong.getTrangThai(), false);
+                });
+                recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
+                recyclerDanhSachPhong.setAdapter(phongAdapter);
+            });
         });
-        recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
-        recyclerDanhSachPhong.setAdapter(phongAdapter);
     }
 
-    // --- HÀM TẢI VÀ TÌM KIẾM DANH SÁCH PHÒNG ---
+    // --- HÀM TẢI VÀ TÌM KIẾM DANH SÁCH PHÒNG (BẤT ĐỒNG BỘ EXECUTOR) ---
     private void loadDanhSachPhong(String keyword) {
-        if (keyword.isEmpty()) {
-            listPhong = db.getAllPhong();
-        } else {
-            listPhong = db.searchPhong(keyword);
-        }
-
-        phongAdapter = new PhongAdapter(this, listPhong, new PhongAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ModelPhong phong) {
-                selectedMaPhong = phong.getMaPhong(); // Ghi nhớ mã phòng đang chọn
-                edtMaPhong.setText(phong.getMaPhong());
-                edtMaPhong.setEnabled(false); // Khóa không cho sửa mã phòng khi đang chỉnh sửa
-                dropdownLoaiPhong.setText(phong.getTenPhong(), false);
-                edtGiaThue.setText(phong.getGiaThue());
-                edtTang.setText(phong.getTang());
-                edtDienTich.setText(phong.getDienTich());
-                dropdownTrangThai.setText(phong.getTrangThai(), false);
+        executor.execute(() -> {
+            List<ModelPhong> resultList;
+            if (keyword.isEmpty()) {
+                resultList = db.getAllPhong();
+            } else {
+                resultList = db.searchPhong(keyword);
             }
+            if (resultList == null) resultList = new ArrayList<>();
+            List<ModelPhong> finalResultList = resultList;
+
+            mainHandler.post(() -> {
+                listPhong = finalResultList;
+                phongAdapter = new PhongAdapter(this, listPhong, phong -> {
+                    selectedMaPhong = phong.getMaPhong();
+                    edtMaPhong.setText(phong.getMaPhong());
+                    edtMaPhong.setEnabled(false);
+                    dropdownLoaiPhong.setText(phong.getTenPhong(), false);
+                    edtGiaThue.setText(phong.getGiaThue());
+                    edtTang.setText(phong.getTang());
+                    edtDienTich.setText(phong.getDienTich());
+                    dropdownTrangThai.setText(phong.getTrangThai(), false);
+                });
+                recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
+                recyclerDanhSachPhong.setAdapter(phongAdapter);
+            });
         });
-        recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
-        recyclerDanhSachPhong.setAdapter(phongAdapter);
     }
 
-    // --- HÀM LÀM TRẮNG FORM ---
     private void lamMoiForm() {
-        selectedMaPhong = ""; // Reset biến lưu trữ
+        selectedMaPhong = "";
         edtMaPhong.setText("");
         edtMaPhong.setEnabled(true);
         dropdownLoaiPhong.setText("Phòng đơn", false);

@@ -6,6 +6,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -18,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.example.quanlyphongtro.adapter.NguoiThueAdapter;
 import com.example.quanlyphongtro.model.ModelNguoiThue;
@@ -26,7 +32,7 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class QuanLyNguoiThue extends AppCompatActivity {
 
     // Khai báo các thành phần giao diện người thuê
-    TextInputEditText edtHoTen, edtSoDienThoai, edtCCCD, edtNgaySinh, edtQueQuan, edtNgayChuyenVao, edtNgayChuyenDi, edtSoLuongNguoi;
+    TextInputEditText edtHoTen, edtSoDienThoai, edtCCCD, edtNgaySinh, edtQueQuan, edtNgayChuyenVao, edtNgayChuyenDi, edtSoLuongNguoi, edtTimKiem;
     AutoCompleteTextView dropdownPhongThue;
     Button btnThemNguoiThue, btnSuaNguoiThue, btnXoaNguoiThue, btnLamMoiNguoiThue, btnQuayLaiNguoiThue;
     RecyclerView recyclerDanhSachNguoiThue;
@@ -37,18 +43,20 @@ public class QuanLyNguoiThue extends AppCompatActivity {
     List<ModelNguoiThue> listNguoiThue;
     NguoiThueAdapter nguoiThueAdapter;
 
-    // Biến ghi nhớ CCCD đang được chọn để Sửa hoặc Xóa chính xác đối tượng
     private String selectedCccd = "";
+
+    // Executor & Handler
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.giaodiennguoithue);
 
-        // Khởi tạo database
         db = new QuanLyCoSoDuLieu(this);
 
-        // --- BƯỚC 1: ÁNH XẠ CÁC VIEW TỪ XML SANG JAVA ---
+        // --- BƯỚC 1: ÁNH XẠ CÁC VIEW ---
         edtHoTen = findViewById(R.id.edtHoTen);
         edtSoDienThoai = findViewById(R.id.edtSoDienThoai);
         edtCCCD = findViewById(R.id.edtCCCD);
@@ -58,12 +66,14 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         edtQueQuan = findViewById(R.id.edtQueQuan);
         edtNgayChuyenVao = findViewById(R.id.edtNgayChuyenVao);
         edtNgayChuyenDi = findViewById(R.id.edtNgayChuyenDi);
+        edtTimKiem = findViewById(R.id.edtTimKiem);
 
         btnThemNguoiThue = findViewById(R.id.btnThemNguoiThue);
         btnSuaNguoiThue = findViewById(R.id.btnSuaNguoiThue);
         btnXoaNguoiThue = findViewById(R.id.btnXoaNguoiThue);
         btnLamMoiNguoiThue = findViewById(R.id.btnLamMoiNguoiThue);
         btnQuayLaiNguoiThue = findViewById(R.id.btnQuayLaiNguoiThue);
+
         Button btnBaoCaoTamTru = findViewById(R.id.btnBaoCaoTamTru);
         if (btnBaoCaoTamTru != null) {
             btnBaoCaoTamTru.setOnClickListener(v -> hienThiDialogBaoCaoTamTru());
@@ -72,74 +82,93 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         recyclerDanhSachNguoiThue = findViewById(R.id.recyclerDanhSachNguoiThue);
         tvTongSoNguoiThue = findViewById(R.id.tvTongSoNguoiThue);
 
-        // --- BƯỚC 2: THIẾT LẬP CHỌN LỊCH (DatePickerDialog) CHO CÁC Ô NGÀY THÁNG ---
+        // --- BƯỚC 2: CHỌN LỊCH ---
         edtNgaySinh.setOnClickListener(v -> showDatePickerDialog(edtNgaySinh));
         edtNgayChuyenVao.setOnClickListener(v -> showDatePickerDialog(edtNgayChuyenVao));
         edtNgayChuyenDi.setOnClickListener(v -> showDatePickerDialog(edtNgayChuyenDi));
 
-        // Nạp danh sách phòng còn trống vào Dropdown chọn phòng
         loadDanhSachPhongTrong();
-
-        // Tải danh sách người thuê từ SQLite lên màn hình
         loadDanhSachNguoiThue();
 
-        // --- BƯỚC 3: CHỨC NĂNG THÊM NGƯỜI THUÊ (Kiểm tra trùng CCCD) ---
-        btnThemNguoiThue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String hoTen = edtHoTen.getText().toString().trim();
-                String sdt = edtSoDienThoai.getText().toString().trim();
-                String cccd = edtCCCD.getText().toString().trim();
-                String ngaySinh = edtNgaySinh.getText().toString().trim();
-                String phongThue = dropdownPhongThue.getText().toString().trim();
-                String soLuong = edtSoLuongNguoi.getText().toString().trim();
-                String queQuan = edtQueQuan.getText().toString().trim();
-                String ngayVao = edtNgayChuyenVao.getText().toString().trim();
-                String ngayDi = edtNgayChuyenDi.getText().toString().trim();
+        // --- DEBOUNCE 250MS TÌM KIẾM ---
+        if (edtTimKiem != null) {
+            Handler debounceHandler = new Handler(Looper.getMainLooper());
+            Runnable searchRunnable = () -> {
+                String kw = edtTimKiem.getText() != null ? edtTimKiem.getText().toString().trim() : "";
+                timKiemNguoiThue(kw);
+            };
 
-                if (soLuong.isEmpty()) soLuong = "1"; // Mặc định 1 người nếu để trống
+            edtTimKiem.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    debounceHandler.removeCallbacks(searchRunnable);
+                    debounceHandler.postDelayed(searchRunnable, 250);
+                }
+                @Override public void afterTextChanged(Editable s) {}
+            });
+        }
 
-                // Kiểm tra rỗng
-                if (hoTen.isEmpty() || sdt.isEmpty() || cccd.isEmpty() || phongThue.isEmpty() || queQuan.isEmpty() || phongThue.contains("Không có")) {
-                    Toast.makeText(QuanLyNguoiThue.this, "Vui lòng nhập đầy đủ thông tin hoặc chọn phòng trống!", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Gọi hàm thêm vào SQLite
-                    boolean check = db.themNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuong);
+        // --- BƯỚC 3: THÊM NGƯỜI THUÊ ---
+        btnThemNguoiThue.setOnClickListener(v -> {
+            String hoTen = edtHoTen.getText() != null ? edtHoTen.getText().toString().trim() : "";
+            String sdt = edtSoDienThoai.getText() != null ? edtSoDienThoai.getText().toString().trim() : "";
+            String cccd = edtCCCD.getText() != null ? edtCCCD.getText().toString().trim() : "";
+            String ngaySinh = edtNgaySinh.getText() != null ? edtNgaySinh.getText().toString().trim() : "";
+            String phongThue = dropdownPhongThue.getText().toString().trim();
+            String soLuong = edtSoLuongNguoi.getText() != null ? edtSoLuongNguoi.getText().toString().trim() : "1";
+            String queQuan = edtQueQuan.getText() != null ? edtQueQuan.getText().toString().trim() : "";
+            String ngayVao = edtNgayChuyenVao.getText() != null ? edtNgayChuyenVao.getText().toString().trim() : "";
+            String ngayDi = edtNgayChuyenDi.getText() != null ? edtNgayChuyenDi.getText().toString().trim() : "";
+
+            if (soLuong.isEmpty()) soLuong = "1";
+
+            if (hoTen.isEmpty() || sdt.isEmpty() || cccd.isEmpty() || phongThue.isEmpty() || queQuan.isEmpty() || phongThue.contains("Không có")) {
+                Toast.makeText(QuanLyNguoiThue.this, "Vui lòng nhập đầy đủ thông tin hoặc chọn phòng trống!", Toast.LENGTH_SHORT).show();
+            } else {
+                String finalSoLuong = soLuong;
+                executor.execute(() -> {
+                    boolean check = db.themNguoiThue(hoTen, sdt, cccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, finalSoLuong);
                     if (check) {
                         String maPhong = phongThue.contains(" (") ? phongThue.split(" \\(")[0].trim() : phongThue.trim();
                         db.updateTrangThaiPhong(maPhong, "Đang thuê");
-
-                        Toast.makeText(QuanLyNguoiThue.this, "Thêm người thuê thành công và đã cập nhật phòng!", Toast.LENGTH_SHORT).show();
-                        loadDanhSachNguoiThue();
-                        loadDanhSachPhongTrong();
-                        lamMoiForm();
-                    } else {
-                        Toast.makeText(QuanLyNguoiThue.this, "Thêm thất bại (CCCD đã tồn tại)!", Toast.LENGTH_SHORT).show();
                     }
-                }
+                    mainHandler.post(() -> {
+                        if (check) {
+                            Toast.makeText(QuanLyNguoiThue.this, "Thêm người thuê thành công và đã cập nhật phòng!", Toast.LENGTH_SHORT).show();
+                            loadDanhSachNguoiThue();
+                            loadDanhSachPhongTrong();
+                            lamMoiForm();
+                        } else {
+                            Toast.makeText(QuanLyNguoiThue.this, "Thêm thất bại (CCCD đã tồn tại)!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
         });
 
-        // --- BƯỚC 4: CHỨC NĂNG SỬA THÔNG TIN NGƯỜI THUÊ (Dựa vào selectedCccd) ---
-        btnSuaNguoiThue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (selectedCccd.isEmpty()) {
-                    Toast.makeText(QuanLyNguoiThue.this, "Vui lòng chọn người thuê cần sửa từ danh sách!", Toast.LENGTH_SHORT).show();
-                } else {
-                    String hoTen = edtHoTen.getText().toString().trim();
-                    String sdt = edtSoDienThoai.getText().toString().trim();
-                    String newCccd = edtCCCD.getText().toString().trim();
-                    String ngaySinh = edtNgaySinh.getText().toString().trim();
-                    String phongThue = dropdownPhongThue.getText().toString().trim();
-                    String soLuong = edtSoLuongNguoi.getText().toString().trim();
-                    String queQuan = edtQueQuan.getText().toString().trim();
-                    String ngayVao = edtNgayChuyenVao.getText().toString().trim();
-                    String ngayDi = edtNgayChuyenDi.getText().toString().trim();
+        // --- BƯỚC 4: SỬA THÔNG TIN NGƯỜI THUÊ ---
+        btnSuaNguoiThue.setOnClickListener(v -> {
+            if (selectedCccd.isEmpty()) {
+                Toast.makeText(QuanLyNguoiThue.this, "Vui lòng chọn người thuê cần sửa từ danh sách!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String hoTen = edtHoTen.getText() != null ? edtHoTen.getText().toString().trim() : "";
+            String sdt = edtSoDienThoai.getText() != null ? edtSoDienThoai.getText().toString().trim() : "";
+            String newCccd = edtCCCD.getText() != null ? edtCCCD.getText().toString().trim() : "";
+            String ngaySinh = edtNgaySinh.getText() != null ? edtNgaySinh.getText().toString().trim() : "";
+            String phongThue = dropdownPhongThue.getText().toString().trim();
+            String soLuong = edtSoLuongNguoi.getText() != null ? edtSoLuongNguoi.getText().toString().trim() : "1";
+            String queQuan = edtQueQuan.getText() != null ? edtQueQuan.getText().toString().trim() : "";
+            String ngayVao = edtNgayChuyenVao.getText() != null ? edtNgayChuyenVao.getText().toString().trim() : "";
+            String ngayDi = edtNgayChuyenDi.getText() != null ? edtNgayChuyenDi.getText().toString().trim() : "";
 
-                    if (soLuong.isEmpty()) soLuong = "1";
+            if (soLuong.isEmpty()) soLuong = "1";
+            String finalSoLuong = soLuong;
 
-                    boolean check = db.suaNguoiThue(selectedCccd, hoTen, sdt, newCccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, soLuong);
+            executor.execute(() -> {
+                boolean check = db.suaNguoiThue(selectedCccd, hoTen, sdt, newCccd, phongThue, queQuan, ngaySinh, ngayVao, ngayDi, finalSoLuong);
+                mainHandler.post(() -> {
                     if (check) {
                         Toast.makeText(QuanLyNguoiThue.this, "Sửa thông tin thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachNguoiThue();
@@ -147,26 +176,26 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                     } else {
                         Toast.makeText(QuanLyNguoiThue.this, "Sửa thất bại!", Toast.LENGTH_SHORT).show();
                     }
-                }
-            }
+                });
+            });
         });
 
-        // --- BƯỚC 5: CHỨC NĂNG XÓA NGƯỜI THUÊ ---
-        btnXoaNguoiThue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (selectedCccd.isEmpty()) {
-                    Toast.makeText(QuanLyNguoiThue.this, "Vui lòng chọn người thuê cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
-                } else {
-                    String phongThueHienTai = dropdownPhongThue.getText().toString().trim();
+        // --- BƯỚC 5: XÓA NGƯỜI THUÊ ---
+        btnXoaNguoiThue.setOnClickListener(v -> {
+            if (selectedCccd.isEmpty()) {
+                Toast.makeText(QuanLyNguoiThue.this, "Vui lòng chọn người thuê cần xóa từ danh sách!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String phongThueHienTai = dropdownPhongThue.getText().toString().trim();
 
-                    boolean check = db.xoaNguoiThue(selectedCccd);
+            executor.execute(() -> {
+                boolean check = db.xoaNguoiThue(selectedCccd);
+                if (check && !phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
+                    String maPhong = phongThueHienTai.contains(" (") ? phongThueHienTai.split(" \\(")[0].trim() : phongThueHienTai.trim();
+                    db.updateTrangThaiPhong(maPhong, "Còn trống");
+                }
+                mainHandler.post(() -> {
                     if (check) {
-                        if (!phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
-                            String maPhong = phongThueHienTai.contains(" (") ? phongThueHienTai.split(" \\(")[0].trim() : phongThueHienTai.trim();
-                            db.updateTrangThaiPhong(maPhong, "Còn trống");
-                        }
-
                         Toast.makeText(QuanLyNguoiThue.this, "Xóa người thuê thành công!", Toast.LENGTH_SHORT).show();
                         loadDanhSachNguoiThue();
                         loadDanhSachPhongTrong();
@@ -174,29 +203,15 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                     } else {
                         Toast.makeText(QuanLyNguoiThue.this, "Xóa thất bại!", Toast.LENGTH_SHORT).show();
                     }
-                }
-            }
+                });
+            });
         });
 
-        // --- BƯỚC 6: LÀM MỚI FORM ---
-        btnLamMoiNguoiThue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                lamMoiForm();
-                Toast.makeText(QuanLyNguoiThue.this, "Đã làm mới form", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // --- BƯỚC 7: QUAY LẠI MÀN HÌNH CHÍNH ---
-        btnQuayLaiNguoiThue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        // --- 6. LÀM MỚI FORM & QUAY LẠI ---
+        btnLamMoiNguoiThue.setOnClickListener(v -> lamMoiForm());
+        btnQuayLaiNguoiThue.setOnClickListener(v -> finish());
     }
 
-    // --- HÀM HIỂN THỊ HỘP THOẠI CHỌN LỊCH (DatePickerDialog) ---
     private void showDatePickerDialog(TextInputEditText edt) {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -211,99 +226,124 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    // --- HÀM NẠP DANH SÁCH PHÒNG CÒN TRỐNG VÀO DROPDOWN ---
     private void loadDanhSachPhongTrong() {
-        List<ModelPhong> allPhong = db.getAllPhong();
-        List<String> phongConTrong = new ArrayList<>();
-
-        for (ModelPhong p : allPhong) {
-            if (p.getTrangThai().toLowerCase().contains("trống")) {
-                phongConTrong.add(p.getMaPhong() + " (" + p.getTenPhong() + ")");
+        executor.execute(() -> {
+            List<ModelPhong> allPhong = db.getAllPhong();
+            List<String> phongConTrong = new ArrayList<>();
+            if (allPhong != null) {
+                for (ModelPhong p : allPhong) {
+                    if (p.getTrangThai() != null && p.getTrangThai().toLowerCase().contains("trống")) {
+                        phongConTrong.add(p.getMaPhong() + " (" + p.getTenPhong() + ")");
+                    }
+                }
             }
-        }
-
-        if (phongConTrong.isEmpty()) {
-            phongConTrong.add("Không có phòng trống");
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, phongConTrong);
-        dropdownPhongThue.setAdapter(adapter);
+            if (phongConTrong.isEmpty()) {
+                phongConTrong.add("Không có phòng trống");
+            }
+            mainHandler.post(() -> {
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, phongConTrong);
+                dropdownPhongThue.setAdapter(adapter);
+            });
+        });
     }
 
-    // --- HÀM TẢI DANH SÁCH NGƯỜI THUÊ TỪ SQLITE LÊN RECYCLERVIEW ---
-    private void loadDanhSachNguoiThue() {
-        listNguoiThue = db.getAllNguoiThue();
-        int tongSoNguoi = listNguoiThue != null ? listNguoiThue.size() : 0;
-        if (tvTongSoNguoiThue != null) {
-            tvTongSoNguoiThue.setText("Tổng số hồ sơ người thuê: " + tongSoNguoi);
-        }
-
-        nguoiThueAdapter = new NguoiThueAdapter(this, listNguoiThue, new NguoiThueAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(ModelNguoiThue item) {
-                selectedCccd = item.getCccd(); // Ghi nhớ CCCD của người đang chọn
-                edtHoTen.setText(item.getHoTen());
-                edtSoDienThoai.setText(item.getSoDienThoai());
-                edtCCCD.setText(item.getCccd());
-                edtNgaySinh.setText(item.getNgaySinh());
-                dropdownPhongThue.setText(item.getPhongThue(), false);
-                edtSoLuongNguoi.setText(item.getSoLuongNguoi());
-                edtQueQuan.setText(item.getQueQuan());
-                edtNgayChuyenVao.setText(item.getNgayChuyenVao());
-                edtNgayChuyenDi.setText(item.getNgayChuyenDi());
+    private void timKiemNguoiThue(String kw) {
+        executor.execute(() -> {
+            List<ModelNguoiThue> all = db.getAllNguoiThue();
+            List<ModelNguoiThue> filtered = new ArrayList<>();
+            if (all != null) {
+                for (ModelNguoiThue nt : all) {
+                    if (kw.isEmpty() || (nt.getHoTen() != null && nt.getHoTen().toLowerCase().contains(kw.toLowerCase())) ||
+                        (nt.getSoDienThoai() != null && nt.getSoDienThoai().contains(kw))) {
+                        filtered.add(nt);
+                    }
+                }
             }
+            mainHandler.post(() -> hienThiDanhSachAdapter(filtered));
+        });
+    }
+
+    private void loadDanhSachNguoiThue() {
+        executor.execute(() -> {
+            listNguoiThue = db.getAllNguoiThue();
+            if (listNguoiThue == null) listNguoiThue = new ArrayList<>();
+            mainHandler.post(() -> {
+                int tongSoNguoi = listNguoiThue.size();
+                if (tvTongSoNguoiThue != null) {
+                    tvTongSoNguoiThue.setText("Tổng số hồ sơ người thuê: " + tongSoNguoi);
+                }
+                hienThiDanhSachAdapter(listNguoiThue);
+            });
+        });
+    }
+
+    private void hienThiDanhSachAdapter(List<ModelNguoiThue> list) {
+        nguoiThueAdapter = new NguoiThueAdapter(this, list, item -> {
+            selectedCccd = item.getCccd();
+            edtHoTen.setText(item.getHoTen());
+            edtSoDienThoai.setText(item.getSoDienThoai());
+            edtCCCD.setText(item.getCccd());
+            edtNgaySinh.setText(item.getNgaySinh());
+            dropdownPhongThue.setText(item.getPhongThue(), false);
+            edtSoLuongNguoi.setText(item.getSoLuongNguoi());
+            edtQueQuan.setText(item.getQueQuan());
+            edtNgayChuyenVao.setText(item.getNgayChuyenVao());
+            edtNgayChuyenDi.setText(item.getNgayChuyenDi());
         });
         recyclerDanhSachNguoiThue.setLayoutManager(new LinearLayoutManager(this));
         recyclerDanhSachNguoiThue.setAdapter(nguoiThueAdapter);
     }
 
-    // --- HÀM LÀM TRẮNG FORM ---
     private void lamMoiForm() {
-        selectedCccd = ""; // Reset biến ghi nhớ
-        edtHoTen.setText("");
-        edtSoDienThoai.setText("");
-        edtCCCD.setText("");
-        edtNgaySinh.setText("");
-        dropdownPhongThue.setText("", false);
-        edtSoLuongNguoi.setText("");
-        edtQueQuan.setText("");
-        edtNgayChuyenVao.setText("");
-        edtNgayChuyenDi.setText("");
-        edtHoTen.requestFocus();
+        selectedCccd = "";
+        if (edtHoTen != null) edtHoTen.setText("");
+        if (edtSoDienThoai != null) edtSoDienThoai.setText("");
+        if (edtCCCD != null) edtCCCD.setText("");
+        if (edtNgaySinh != null) edtNgaySinh.setText("");
+        if (dropdownPhongThue != null) dropdownPhongThue.setText("", false);
+        if (edtSoLuongNguoi != null) edtSoLuongNguoi.setText("");
+        if (edtQueQuan != null) edtQueQuan.setText("");
+        if (edtNgayChuyenVao != null) edtNgayChuyenVao.setText("");
+        if (edtNgayChuyenDi != null) edtNgayChuyenDi.setText("");
+        if (edtHoTen != null) edtHoTen.requestFocus();
         loadDanhSachPhongTrong();
     }
 
     private void hienThiDialogBaoCaoTamTru() {
-        List<ModelNguoiThue> list = db.getAllNguoiThue();
-        if (list == null || list.isEmpty()) {
-            Toast.makeText(this, "Chưa có danh sách người thuê!", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        executor.execute(() -> {
+            List<ModelNguoiThue> list = db.getAllNguoiThue();
+            mainHandler.post(() -> {
+                if (list == null || list.isEmpty()) {
+                    Toast.makeText(this, "Chưa có danh sách người thuê!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("DANH SÁCH BÁO CÁO KHAI BÁO TẠM TRÚ CÔNG AN PHƯỜNG/XÃ\n");
-        sb.append("Ngày lập: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date())).append("\n\n");
+                StringBuilder sb = new StringBuilder();
+                sb.append("DANH SÁCH BÁO CÁO KHAI BÁO TẠM TRÚ CÔNG AN PHƯỜNG/XÃ\n");
+                sb.append("Ngày lập: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new java.util.Date())).append("\n\n");
 
-        int stt = 1;
-        for (ModelNguoiThue nt : list) {
-            sb.append(stt++).append(". ").append(nt.getHoTen()).append("\n")
-              .append("   • SĐT: ").append(nt.getSoDienThoai()).append("\n")
-              .append("   • CCCD: ").append(nt.getCccd()).append("\n")
-              .append("   • Quê quán: ").append(nt.getQueQuan()).append("\n")
-              .append("   • Phòng ở: ").append(nt.getPhongThue()).append("\n")
-              .append("   • Ngày chuyển vào: ").append(nt.getNgayChuyenVao()).append("\n\n");
-        }
+                int stt = 1;
+                for (ModelNguoiThue nt : list) {
+                    sb.append(stt++).append(". ").append(nt.getHoTen()).append("\n")
+                      .append("   • SĐT: ").append(nt.getSoDienThoai()).append("\n")
+                      .append("   • CCCD: ").append(nt.getCccd()).append("\n")
+                      .append("   • Quê quán: ").append(nt.getQueQuan()).append("\n")
+                      .append("   • Phòng ở: ").append(nt.getPhongThue()).append("\n")
+                      .append("   • Ngày chuyển vào: ").append(nt.getNgayChuyenVao()).append("\n\n");
+                }
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Khai Báo Tạm Trú Công An")
-                .setMessage(sb.toString())
-                .setPositiveButton("Gửi Zalo/SMS", (dialog, which) -> {
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-                    intent.setType("text/plain");
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, sb.toString());
-                    startActivity(android.content.Intent.createChooser(intent, "Gửi báo cáo tạm trú"));
-                })
-                .setNegativeButton("Đóng", null)
-                .show();
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Khai Báo Tạm Trú Công An")
+                        .setMessage(sb.toString())
+                        .setPositiveButton("Gửi Zalo/SMS", (dialog, which) -> {
+                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                            intent.setType("text/plain");
+                            intent.putExtra(android.content.Intent.EXTRA_TEXT, sb.toString());
+                            startActivity(android.content.Intent.createChooser(intent, "Gửi báo cáo tạm trú"));
+                        })
+                        .setNegativeButton("Đóng", null)
+                        .show();
+            });
+        });
     }
 }

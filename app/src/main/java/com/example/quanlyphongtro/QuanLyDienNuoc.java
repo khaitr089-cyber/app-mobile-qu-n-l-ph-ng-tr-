@@ -5,6 +5,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
@@ -18,6 +20,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.example.quanlyphongtro.adapter.DienNuocAdapter;
 import com.example.quanlyphongtro.model.ModelDienNuoc;
@@ -25,7 +29,6 @@ import com.example.quanlyphongtro.model.ModelPhong;
 
 public class QuanLyDienNuoc extends AppCompatActivity {
 
-    // Khai báo các view
     AutoCompleteTextView dropdownChonPhongDienNuoc;
     TextInputEditText edtThangGhi, edtDienCu, edtDienMoi, edtNuocCu, edtNuocMoi, edtTienDichVuKhac, edtTimKiemDienNuoc;
     TextView tvTongTienTinhToan;
@@ -36,9 +39,12 @@ public class QuanLyDienNuoc extends AppCompatActivity {
     List<ModelDienNuoc> danhSachDienNuoc;
     DienNuocAdapter dienNuocAdapter;
 
-    // Đơn giá mặc định cho điện và nước
-    private final double donGiaDien = 3500; // VNĐ / kWh
-    private final double donGiaNuoc = 10000; // VNĐ / m3
+    private final double donGiaDien = 3500;
+    private final double donGiaNuoc = 10000;
+
+    // Executor & Handler
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,37 +70,32 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         edtTimKiemDienNuoc = findViewById(R.id.edtTimKiemDienNuoc);
         recyclerDanhSachDienNuoc = findViewById(R.id.recyclerDanhSachDienNuoc);
 
-        // Khởi tạo danh sách ban đầu từ CSDL
         loadDanhSachDienNuoc();
-
-        // Nạp danh sách phòng vào dropdown
         loadDanhSachPhong();
 
         dropdownChonPhongDienNuoc.setOnItemClickListener((parent, view, position, id) -> {
             String selected = (String) parent.getItemAtPosition(position);
             if (selected != null && !selected.contains("Không có")) {
                 String maPhong = selected.split(" ")[0].trim();
-                double[] chisoCu = db.getChisoDienNuocMoiNhatByMaPhong(maPhong);
-                if (chisoCu[0] > 0 || chisoCu[1] > 0) {
-                    edtDienCu.setText(String.valueOf((long) chisoCu[0]));
-                    edtNuocCu.setText(String.valueOf((long) chisoCu[1]));
-                    Toast.makeText(this, "Đã tự động nạp chỉ số điện/nước cũ tháng trước!", Toast.LENGTH_SHORT).show();
-                }
+                executor.execute(() -> {
+                    double[] chisoCu = db.getChisoDienNuocMoiNhatByMaPhong(maPhong);
+                    mainHandler.post(() -> {
+                        if (chisoCu[0] > 0 || chisoCu[1] > 0) {
+                            edtDienCu.setText(String.valueOf((long) chisoCu[0]));
+                            edtNuocCu.setText(String.valueOf((long) chisoCu[1]));
+                            Toast.makeText(this, "Đã tự động nạp chỉ số điện/nước cũ tháng trước!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
         });
 
-        // Tự động tính tiền khi người dùng nhập liệu chỉ số cũ/mới hoặc dịch vụ
         TextWatcher boTheoDoiNhapLieu = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 tinhTongTienTamTinh();
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         };
 
         edtDienCu.addTextChangedListener(boTheoDoiNhapLieu);
@@ -103,24 +104,25 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         edtNuocMoi.addTextChangedListener(boTheoDoiNhapLieu);
         edtTienDichVuKhac.addTextChangedListener(boTheoDoiNhapLieu);
 
-        // --- TÍNH NĂNG TÌM KIẾM ---
-        edtTimKiemDienNuoc.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        // DEBOUNCE 250MS TÌM KIẾM
+        Handler debounceHandler = new Handler(Looper.getMainLooper());
+        Runnable searchRunnable = () -> {
+            String kw = edtTimKiemDienNuoc.getText() != null ? edtTimKiemDienNuoc.getText().toString() : "";
+            timKiemDienNuoc(kw);
+        };
 
+        edtTimKiemDienNuoc.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                timKiemDienNuoc(s.toString());
+                debounceHandler.removeCallbacks(searchRunnable);
+                debounceHandler.postDelayed(searchRunnable, 250);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        // Nút cài đặt đơn giá điện nước
         btnCaiDatGia.setOnClickListener(v -> hienThiDialogCaiDatGia());
 
-        // Nút XÁC NHẬN (Lưu/Cập nhật điện nước)
         btnXacNhanDienNuoc.setOnClickListener(v -> {
             String phong = dropdownChonPhongDienNuoc.getText().toString().trim();
             String thang = edtThangGhi.getText() != null ? edtThangGhi.getText().toString().trim() : "";
@@ -145,31 +147,33 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             double tongTien = (soDienTieuThu * donGiaDien) + (soNuocTieuThu * donGiaNuoc) + tienDichVu;
 
             String maClean = phong.split(" ")[0].trim();
-            boolean saveDb = db.themDienNuoc(maClean, thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
-            
-            if (saveDb) {
-                loadDanhSachDienNuoc();
-                Toast.makeText(this, "Xác nhận và lưu chỉ số điện nước vào CSDL thành công!", Toast.LENGTH_SHORT).show();
-                lamMoiForm();
-            } else {
-                Toast.makeText(this, "Lưu vào CSDL thất bại!", Toast.LENGTH_SHORT).show();
-            }
+
+            executor.execute(() -> {
+                boolean saveDb = db.themDienNuoc(maClean, thang, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien);
+                mainHandler.post(() -> {
+                    if (saveDb) {
+                        loadDanhSachDienNuoc();
+                        Toast.makeText(this, "Xác nhận và lưu chỉ số điện nước vào CSDL thành công!", Toast.LENGTH_SHORT).show();
+                        lamMoiForm();
+                    } else {
+                        Toast.makeText(this, "Lưu vào CSDL thất bại!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
         });
 
-        // Nút Làm mới form
         btnLamMoiDienNuoc.setOnClickListener(v -> lamMoiForm());
-
-        // Nút Quay lại
         btnQuayLaiDienNuoc.setOnClickListener(v -> finish());
     }
 
     private void loadDanhSachDienNuoc() {
-        danhSachDienNuoc = db.getAllDienNuoc();
-        if (danhSachDienNuoc == null) danhSachDienNuoc = new ArrayList<>();
-        hienThiDanhSach(danhSachDienNuoc);
+        executor.execute(() -> {
+            danhSachDienNuoc = db.getAllDienNuoc();
+            if (danhSachDienNuoc == null) danhSachDienNuoc = new ArrayList<>();
+            mainHandler.post(() -> hienThiDanhSach(danhSachDienNuoc));
+        });
     }
 
-    // --- TÍNH SỐ TIÊU THỤ ---
     private double laySoDienTieuThu() {
         try {
             double cu = Double.parseDouble(edtDienCu.getText().toString().trim());
@@ -198,7 +202,6 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         }
     }
 
-    // --- TỰ ĐỘNG TÍNH TIỀN ---
     private void tinhTongTienTamTinh() {
         double soDien = laySoDienTieuThu();
         double soNuoc = laySoNuocTieuThu();
@@ -208,15 +211,16 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         tvTongTienTinhToan.setText(String.format(Locale.getDefault(), "Tổng tiền tạm tính: %,.0f VNĐ", tongTien));
     }
 
-    // --- TÌM KIẾM ĐIỆN NƯỚC (Không fill lại form khi click) ---
     private void timKiemDienNuoc(String tuKhoa) {
         String tuKhoaChuan = tuKhoa.toLowerCase().trim();
         List<ModelDienNuoc> danhSachKetQua = new ArrayList<>();
 
-        for (ModelDienNuoc item : danhSachDienNuoc) {
-            if (item.getMaPhong().toLowerCase().contains(tuKhoaChuan) ||
-                item.getThangGhi().toLowerCase().contains(tuKhoaChuan)) {
-                danhSachKetQua.add(item);
+        if (danhSachDienNuoc != null) {
+            for (ModelDienNuoc item : danhSachDienNuoc) {
+                if (item.getMaPhong().toLowerCase().contains(tuKhoaChuan) ||
+                    item.getThangGhi().toLowerCase().contains(tuKhoaChuan)) {
+                    danhSachKetQua.add(item);
+                }
             }
         }
 
@@ -224,33 +228,35 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         recyclerDanhSachDienNuoc.setAdapter(dienNuocAdapter);
     }
 
-    // --- CÀI ĐẶT ĐƠN GIÁ ---
     private void hienThiDialogCaiDatGia() {
         Toast.makeText(this, "Đơn giá hiện tại: Điện = " + donGiaDien + "đ/kWh | Nước = " + donGiaNuoc + "đ/m3", Toast.LENGTH_LONG).show();
     }
 
-    // --- LOAD PHÒNG ---
     private void loadDanhSachPhong() {
-        List<ModelPhong> tatCaPhong = db.getAllPhong();
-        List<String> tenPhongList = new ArrayList<>();
-        for (ModelPhong p : tatCaPhong) {
-            tenPhongList.add(p.getMaPhong() + " - " + p.getTenPhong());
-        }
-        if (tenPhongList.isEmpty()) {
-            tenPhongList.add("Không có phòng nào");
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, tenPhongList);
-        dropdownChonPhongDienNuoc.setAdapter(adapter);
+        executor.execute(() -> {
+            List<ModelPhong> tatCaPhong = db.getAllPhong();
+            List<String> tenPhongList = new ArrayList<>();
+            if (tatCaPhong != null) {
+                for (ModelPhong p : tatCaPhong) {
+                    tenPhongList.add(p.getMaPhong() + " - " + p.getTenPhong());
+                }
+            }
+            if (tenPhongList.isEmpty()) {
+                tenPhongList.add("Không có phòng nào");
+            }
+            mainHandler.post(() -> {
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, tenPhongList);
+                dropdownChonPhongDienNuoc.setAdapter(adapter);
+            });
+        });
     }
 
-    // --- HIỂN THỊ DANH SÁCH (Không fill lại form khi click) ---
     private void hienThiDanhSach(List<ModelDienNuoc> list) {
         dienNuocAdapter = new DienNuocAdapter(this, list, null);
         recyclerDanhSachDienNuoc.setLayoutManager(new LinearLayoutManager(this));
         recyclerDanhSachDienNuoc.setAdapter(dienNuocAdapter);
     }
 
-    // --- LÀM MỚI FORM ---
     private void lamMoiForm() {
         dropdownChonPhongDienNuoc.setText("", false);
         edtThangGhi.setText("");
