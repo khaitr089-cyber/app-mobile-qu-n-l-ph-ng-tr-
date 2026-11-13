@@ -30,7 +30,7 @@ public class QuanLyHopDong extends AppCompatActivity {
     TextInputEditText txtMahopdong, txtNguoiocung, txtNgaybatdau, txtNgayketthuc;
     TextInputEditText txtGiathue, txtTiencoc, txtNgaythanhtoanhangthang, txtNgaythanhtoandautien, txtGhichu;
     Spinner spnPhongthue, spnNguoidaidien;
-    Button btnTaohopdong;
+    Button btnTaohopdong, btnQuayLaiHopDong;
     ListView lvHopdong;
 
     QuanLyCoSoDuLieu dbHelper;
@@ -61,7 +61,12 @@ public class QuanLyHopDong extends AppCompatActivity {
         txtGhichu = findViewById(R.id.txtghichu);
 
         btnTaohopdong = findViewById(R.id.btntaohoadon);
+        btnQuayLaiHopDong = findViewById(R.id.btnQuayLaiHopDong);
         lvHopdong = findViewById(R.id.lvhopdong);
+
+        if (btnQuayLaiHopDong != null) {
+            btnQuayLaiHopDong.setOnClickListener(v -> finish());
+        }
 
         // Nạp dữ liệu vào Spinner và Auto điền thông tin mặc định
         loadSpinnerData();

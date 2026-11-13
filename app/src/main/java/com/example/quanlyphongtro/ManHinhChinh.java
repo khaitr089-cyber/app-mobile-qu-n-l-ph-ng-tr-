@@ -22,7 +22,7 @@ public class ManHinhChinh extends AppCompatActivity {
     CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvquanlydiennuoc, cvquanlythuchi, cvthongke;
     ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgDienNuoc, btnImgThuChi, btnImgThongKe;
     Button btndangxuat;
-    TextView txtSoPhongTrong, txtSoNguoiThue;
+    TextView txtSoPhongTrong, txtSoPhongDangThue, txtSoNguoiThue;
 
     QuanLyCoSoDuLieu db;
 
@@ -35,6 +35,7 @@ public class ManHinhChinh extends AppCompatActivity {
 
         // Ánh xạ TextView thống kê
         txtSoPhongTrong = findViewById(R.id.txtsophongtrong);
+        txtSoPhongDangThue = findViewById(R.id.txtsophongdangthue);
         txtSoNguoiThue = findViewById(R.id.txtsonguoithue);
 
         // Ánh xạ các CardView
@@ -159,13 +160,19 @@ public class ManHinhChinh extends AppCompatActivity {
     private void capNhatThongKeNhanh() {
         if (db == null) return;
 
-        // Đếm số phòng trống từ SQLite
         List<ModelPhong> danhSachPhong = db.getAllPhong();
         int soPhongTrong = 0;
+        int soPhongDangThue = 0;
+
         if (danhSachPhong != null) {
             for (ModelPhong p : danhSachPhong) {
-                if (p.getTrangThai() != null && p.getTrangThai().toLowerCase().contains("trống")) {
-                    soPhongTrong++;
+                if (p.getTrangThai() != null) {
+                    String tt = p.getTrangThai().toLowerCase();
+                    if (tt.contains("trống")) {
+                        soPhongTrong++;
+                    } else if (tt.contains("thuê")) {
+                        soPhongDangThue++;
+                    }
                 }
             }
         }
@@ -191,6 +198,9 @@ public class ManHinhChinh extends AppCompatActivity {
         // Hiển thị lên TextView tương ứng trên màn hình chính
         if (txtSoPhongTrong != null) {
             txtSoPhongTrong.setText(String.valueOf(soPhongTrong));
+        }
+        if (txtSoPhongDangThue != null) {
+            txtSoPhongDangThue.setText(String.valueOf(soPhongDangThue));
         }
         if (txtSoNguoiThue != null) {
             txtSoNguoiThue.setText(String.valueOf(tongSoNguoiO));
