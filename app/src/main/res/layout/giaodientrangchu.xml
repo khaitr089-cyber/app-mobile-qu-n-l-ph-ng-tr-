@@ -57,7 +57,7 @@
                         android:id="@+id/txtsophongtrong"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="5"
+                        android:text="0"
                         android:textColor="#4CAF50"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -91,7 +91,7 @@
                         android:id="@+id/txtsonguoithue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="20"
+                        android:text="0"
                         android:textColor="#2196F3"
                         android:textSize="28sp"
                         android:textStyle="bold" />
@@ -105,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="chọn chức năng"
+            android:text="Chọn chức năng quản lý"
             android:textColor="@android:color/black"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -232,7 +232,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 4. Quản lý hợp đồng (MỚI) -->
+            <!-- 4. Quản lý hợp đồng -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvquanlyhopdong"
                 android:layout_width="0dp"
@@ -270,7 +270,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 5. Quản lý điện nước & dịch vụ (MỚI) -->
+            <!-- 5. Quản lý điện nước & dịch vụ -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvquanlydiennuoc"
                 android:layout_width="0dp"
@@ -308,7 +308,45 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 6. Báo cáo thống kê -->
+            <!-- 6. Sổ thu chi & Bảo trì (MỚI) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cvquanlythuchi"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <ImageButton
+                        android:id="@+id/btnimgthuchi"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_menu_today"
+                        app:tint="#795548"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Sổ thu chi bảo trì"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Sổ Thu Chi Sửa Chữa"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 7. Báo cáo thống kê -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvthongke"
                 android:layout_width="0dp"

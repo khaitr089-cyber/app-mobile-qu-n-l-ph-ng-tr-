@@ -19,8 +19,8 @@ import com.example.quanlyphongtro.model.ModelPhong;
 public class ManHinhChinh extends AppCompatActivity {
 
     // Khai báo các view
-    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvquanlydiennuoc, cvthongke;
-    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgDienNuoc, btnImgThongKe;
+    CardView cvquanlyphongtro, cvquanlynguoithue, cvquanlyhoadon, cvquanlyhopdong, cvquanlydiennuoc, cvquanlythuchi, cvthongke;
+    ImageButton btnImgQuanLyPhong, btnImgNguoiThue, btnImgHoaDon, btnImgHopDong, btnImgDienNuoc, btnImgThuChi, btnImgThongKe;
     Button btndangxuat;
     TextView txtSoPhongTrong, txtSoNguoiThue;
 
@@ -43,6 +43,7 @@ public class ManHinhChinh extends AppCompatActivity {
         cvquanlyhoadon = findViewById(R.id.cvquanlyhoadon);
         cvquanlyhopdong = findViewById(R.id.cvquanlyhopdong);
         cvquanlydiennuoc = findViewById(R.id.cvquanlydiennuoc);
+        cvquanlythuchi = findViewById(R.id.cvquanlythuchi);
         cvthongke = findViewById(R.id.cvthongke);
 
         // Ánh xạ các ImageButton
@@ -51,6 +52,7 @@ public class ManHinhChinh extends AppCompatActivity {
         btnImgHoaDon = findViewById(R.id.btnimghoadon);
         btnImgHopDong = findViewById(R.id.btnimghopdong);
         btnImgDienNuoc = findViewById(R.id.btnimgdiennuoc);
+        btnImgThuChi = findViewById(R.id.btnimgthuchi);
         btnImgThongKe = findViewById(R.id.btnimgthongke);
         
         // Ánh xạ nút Đăng xuất
@@ -111,7 +113,18 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvquanlydiennuoc != null) cvquanlydiennuoc.setOnClickListener(listenerDienNuoc);
         if (btnImgDienNuoc != null) btnImgDienNuoc.setOnClickListener(listenerDienNuoc);
 
-        // 6. Thống kê
+        // 6. Sổ thu chi & sửa chữa
+        View.OnClickListener listenerThuChi = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ManHinhChinh.this, QuanLyThuChi.class);
+                startActivity(intent);
+            }
+        };
+        if (cvquanlythuchi != null) cvquanlythuchi.setOnClickListener(listenerThuChi);
+        if (btnImgThuChi != null) btnImgThuChi.setOnClickListener(listenerThuChi);
+
+        // 7. Thống kê
         View.OnClickListener listenerThongKe = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,7 +135,7 @@ public class ManHinhChinh extends AppCompatActivity {
         if (cvthongke != null) cvthongke.setOnClickListener(listenerThongKe);
         if (btnImgThongKe != null) btnImgThongKe.setOnClickListener(listenerThongKe);
 
-        // 7. Đăng xuất
+        // 8. Đăng xuất
         if (btndangxuat != null) {
             btndangxuat.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -157,7 +170,7 @@ public class ManHinhChinh extends AppCompatActivity {
             }
         }
 
-        // Tính tổng số lượng người ở từ các hồ sơ người thuê (cộng dồn số lượng người ở từng phòng)
+        // Tính tổng số lượng người ở từ các hồ sơ người thuê
         List<ModelNguoiThue> danhSachNguoiThue = db.getAllNguoiThue();
         int tongSoNguoiO = 0;
         if (danhSachNguoiThue != null) {
@@ -167,7 +180,7 @@ public class ManHinhChinh extends AppCompatActivity {
                     if (slStr != null && !slStr.isEmpty()) {
                         tongSoNguoiO += Integer.parseInt(slStr);
                     } else {
-                        tongSoNguoiO += 1; // Mặc định 1 người nếu chưa nhập
+                        tongSoNguoiO += 1;
                     }
                 } catch (NumberFormatException e) {
                     tongSoNguoiO += 1;
