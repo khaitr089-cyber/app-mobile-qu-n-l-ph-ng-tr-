@@ -221,6 +221,47 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Filter Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/btnLocTatCa"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="Tất cả"
+                android:textSize="12sp"
+                android:padding="0dp"
+                android:layout_marginEnd="2dp"
+                android:backgroundTint="#2196F3"/>
+
+            <Button
+                android:id="@+id/btnLocPhongTrong"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="Chỉ phòng trống"
+                android:textSize="12sp"
+                android:padding="0dp"
+                android:layout_marginHorizontal="2dp"
+                android:backgroundTint="#4CAF50"/>
+
+            <Button
+                android:id="@+id/btnLocDangThue"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:text="Đang thuê"
+                android:textSize="12sp"
+                android:padding="0dp"
+                android:layout_marginStart="2dp"
+                android:backgroundTint="#FF9800"/>
+        </LinearLayout>
+
         <!-- Search Bar (F05) - Đặt ngay trên danh sách phòng trọ -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

@@ -18,7 +18,7 @@ import com.example.quanlyphongtro.model.ModelThuChi;
 public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "quanlyphongtro.db";
-    private static final int DATABASE_VERSION = 16;
+    private static final int DATABASE_VERSION = 17; // Tăng version lên 17 để cập nhật thông tin Chủ nhà Bên A và Lịch sử Thu Chi
 
     public QuanLyCoSoDuLieu(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -26,15 +26,18 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // 1. Tạo bảng Người Dùng (Phân hệ 1)
+        // 1. Tạo bảng Người Dùng (Bổ sung Họ tên Chủ nhà, SĐT, CCCD)
         String sqlUser = "CREATE TABLE NguoiDung (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "tenDangNhap TEXT UNIQUE, " +
-                "matKhau TEXT)";
+                "matKhau TEXT, " +
+                "hoTenChuNha TEXT, " +
+                "sdtChuNha TEXT, " +
+                "cccdChuNha TEXT)";
         db.execSQL(sqlUser);
-        db.execSQL("INSERT INTO NguoiDung(tenDangNhap, matKhau) VALUES('admin', '123456')");
+        db.execSQL("INSERT INTO NguoiDung(tenDangNhap, matKhau, hoTenChuNha, sdtChuNha, cccdChuNha) VALUES('admin', '123456', 'Nguyễn Văn A', '0987654321', '001090123456')");
 
-        // 2. Tạo bảng Phòng Trọ (Phân hệ 2)
+        // 2. Tạo bảng Phòng Trọ
         String sqlPhong = "CREATE TABLE PhongTro (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maPhong TEXT, " +
@@ -48,7 +51,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlPhong);
 
-        // 3. Tạo bảng Người Thuê (Phân hệ 3)
+        // 3. Tạo bảng Người Thuê
         String sqlNguoiThue = "CREATE TABLE NguoiThue (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "hoTen TEXT, " +
@@ -64,7 +67,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlNguoiThue);
 
-        // 4. Tạo bảng Hóa Đơn & Thanh Toán (Phân hệ 6 & 7)
+        // 4. Tạo bảng Hóa Đơn
         String sqlHoaDon = "CREATE TABLE HoaDon (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maHoaDon TEXT UNIQUE, " +
@@ -81,7 +84,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlHoaDon);
 
-        // 5. Tạo bảng Hợp Đồng (Phân hệ 4)
+        // 5. Tạo bảng Hợp Đồng
         String sqlHopDong = "CREATE TABLE HopDong (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maHopDong TEXT UNIQUE, " +
@@ -99,7 +102,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
                 "username TEXT)";
         db.execSQL(sqlHopDong);
 
-        // 6. Tạo bảng Điện Nước Dịch Vụ (Phân hệ 5)
+        // 6. Tạo bảng Điện Nước Dịch Vụ
         String sqlDienNuoc = "CREATE TABLE DienNuoc (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "maPhong TEXT, " +
@@ -148,7 +151,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // --- PHÂN HỆ 1: TÀI KHOẢN ---
+    // --- PHÂN HỆ 1: TÀI KHOẢN & THÔNG TIN CHỦ NHÀ ---
     public boolean dangnhap(String taiKhoan, String matKhau) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(
@@ -161,14 +164,34 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return ketQua;
     }
 
-    public boolean dangky(String taiKhoan, String matKhau) {
+    public boolean dangkyFull(String taiKhoan, String matKhau, String hoTen, String sdt, String cccd) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("tenDangNhap", taiKhoan);
         values.put("matKhau", matKhau);
+        values.put("hoTenChuNha", hoTen);
+        values.put("sdtChuNha", sdt);
+        values.put("cccdChuNha", cccd);
         long result = db.insert("NguoiDung", null, values);
         db.close();
         return result != -1;
+    }
+
+    public String[] getThongTinChuNha(String username) {
+        String[] info = new String[]{"Nguyễn Văn A", "0987654321", "001090123456"};
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT hoTenChuNha, sdtChuNha, cccdChuNha FROM NguoiDung WHERE tenDangNhap = ?", new String[]{username});
+        if (cursor.moveToFirst()) {
+            String hoTen = cursor.getString(0);
+            String sdt = cursor.getString(1);
+            String cccd = cursor.getString(2);
+            if (hoTen != null && !hoTen.isEmpty()) info[0] = hoTen;
+            if (sdt != null && !sdt.isEmpty()) info[1] = sdt;
+            if (cccd != null && !cccd.isEmpty()) info[2] = cccd;
+        }
+        cursor.close();
+        db.close();
+        return info;
     }
 
     // --- PHÂN HỆ 2: QUẢN LÝ PHÒNG TRỌ ---
@@ -242,6 +265,26 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         List<ModelPhong> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM PhongTro WHERE username = ?", new String[]{UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            do {
+                String ma = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
+                String ten = cursor.getString(cursor.getColumnIndexOrThrow("tenPhong"));
+                int gia = cursor.getInt(cursor.getColumnIndexOrThrow("giaThue"));
+                String tt = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
+                String tang = cursor.getString(cursor.getColumnIndexOrThrow("tang"));
+                String dt = cursor.getString(cursor.getColumnIndexOrThrow("dienTich"));
+                list.add(new ModelPhong(ma, ten, String.valueOf(gia), tt, tang, dt));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
+    public List<ModelPhong> getPhongByTrangThai(String trangThaiLoc) {
+        List<ModelPhong> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM PhongTro WHERE username = ? AND trangThai LIKE ?", new String[]{UserSession.currentUser, "%" + trangThaiLoc + "%"});
         if (cursor.moveToFirst()) {
             do {
                 String ma = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
@@ -369,7 +412,72 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- PHÂN HỆ 6 & 7: QUẢN LÝ HÓA ĐƠN, THANH TOÁN & CÔNG NỢ ---
+    // --- PHÂN HỆ 5: QUẢN LÝ ĐIỆN NƯỚC (NÂNG CẤP LẤY CHỈ SỐ CŨ CỦA THÁNG TRƯỚC) ---
+    public double[] getChisoDienNuocMoiNhatByMaPhong(String maPhong) {
+        double[] chiso = new double[]{0, 0}; // [dienMoi, nuocMoi]
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT dienMoi, nuocMoi FROM DienNuoc WHERE maPhong = ? AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maPhong, UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            chiso[0] = cursor.getDouble(0);
+            chiso[1] = cursor.getDouble(1);
+        }
+        cursor.close();
+        db.close();
+        return chiso;
+    }
+
+    public boolean themDienNuoc(String maPhong, String thangGhi, double dienCu, double dienMoi, double nuocCu, double nuocMoi, double tienDichVu, double tongTien) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("maPhong", maPhong);
+        values.put("thangGhi", thangGhi);
+        values.put("dienCu", dienCu);
+        values.put("dienMoi", dienMoi);
+        values.put("nuocCu", nuocCu);
+        values.put("nuocMoi", nuocMoi);
+        values.put("tienDichVu", tienDichVu);
+        values.put("tongTien", tongTien);
+        values.put("username", UserSession.currentUser);
+        long result = db.insert("DienNuoc", null, values);
+        db.close();
+        return result != -1;
+    }
+
+    public List<ModelDienNuoc> getAllDienNuoc() {
+        List<ModelDienNuoc> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM DienNuoc WHERE username = ? ORDER BY id DESC", new String[]{UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            do {
+                String maPhong = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
+                String thangGhi = cursor.getString(cursor.getColumnIndexOrThrow("thangGhi"));
+                double dienCu = cursor.getDouble(cursor.getColumnIndexOrThrow("dienCu"));
+                double dienMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("dienMoi"));
+                double nuocCu = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocCu"));
+                double nuocMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocMoi"));
+                double tienDichVu = cursor.getDouble(cursor.getColumnIndexOrThrow("tienDichVu"));
+                double tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
+                list.add(new ModelDienNuoc(maPhong, thangGhi, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
+    public double getTongTienDienNuoc(String maPhong) {
+        double tongTien = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT tongTien FROM DienNuoc WHERE maPhong = ? AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maPhong, UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
+        }
+        cursor.close();
+        db.close();
+        return tongTien;
+    }
+
+    // --- PHÂN HỆ 6 & 7: QUẢN LÝ HÓA ĐƠN & THANH TOÁN ---
     public boolean themHoaDon(String maHoaDon, String maPhong, double tongTien) {
         return themHoaDon(maHoaDon, maPhong, tongTien, "Chưa thanh toán");
     }
@@ -454,32 +562,10 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public boolean giaHanHopDong(String maHopDong, String ngayKetThucMoi) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("ngayKetThuc", ngayKetThucMoi);
-        values.put("trangThai", "Đang hiệu lực");
-        int rows = db.update("HopDong", values, "maHopDong = ?", new String[]{maHopDong});
-        db.close();
-        return rows > 0;
-    }
-
-    public boolean ketThucHopDong(String maHopDong, String maPhong) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("trangThai", "Đã kết thúc");
-        int rows = db.update("HopDong", values, "maHopDong = ?", new String[]{maHopDong});
-        if (rows > 0) {
-            updateTrangThaiPhong(maPhong, "Còn trống");
-        }
-        db.close();
-        return rows > 0;
-    }
-
     public List<ModelHopDong> getAllHopDong() {
         List<ModelHopDong> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM HopDong", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM HopDong WHERE username = ?", new String[]{UserSession.currentUser});
         if (cursor.moveToFirst()) {
             do {
                 String maHD = cursor.getString(cursor.getColumnIndexOrThrow("maHopDong"));
@@ -512,59 +598,7 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return list;
     }
 
-    // --- PHÂN HỆ 5: QUẢN LÝ ĐIỆN NƯỚC DỊCH VỤ ---
-    public boolean themDienNuoc(String maPhong, String thangGhi, double dienCu, double dienMoi, double nuocCu, double nuocMoi, double tienDichVu, double tongTien) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("maPhong", maPhong);
-        values.put("thangGhi", thangGhi);
-        values.put("dienCu", dienCu);
-        values.put("dienMoi", dienMoi);
-        values.put("nuocCu", nuocCu);
-        values.put("nuocMoi", nuocMoi);
-        values.put("tienDichVu", tienDichVu);
-        values.put("tongTien", tongTien);
-        values.put("username", UserSession.currentUser);
-        long result = db.insert("DienNuoc", null, values);
-        db.close();
-        return result != -1;
-    }
-
-    public List<ModelDienNuoc> getAllDienNuoc() {
-        List<ModelDienNuoc> list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM DienNuoc WHERE username = ? ORDER BY id DESC", new String[]{UserSession.currentUser});
-        if (cursor.moveToFirst()) {
-            do {
-                String maPhong = cursor.getString(cursor.getColumnIndexOrThrow("maPhong"));
-                String thangGhi = cursor.getString(cursor.getColumnIndexOrThrow("thangGhi"));
-                double dienCu = cursor.getDouble(cursor.getColumnIndexOrThrow("dienCu"));
-                double dienMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("dienMoi"));
-                double nuocCu = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocCu"));
-                double nuocMoi = cursor.getDouble(cursor.getColumnIndexOrThrow("nuocMoi"));
-                double tienDichVu = cursor.getDouble(cursor.getColumnIndexOrThrow("tienDichVu"));
-                double tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
-                list.add(new ModelDienNuoc(maPhong, thangGhi, dienCu, dienMoi, nuocCu, nuocMoi, tienDichVu, tongTien));
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        db.close();
-        return list;
-    }
-
-    public double getTongTienDienNuoc(String maPhong) {
-        double tongTien = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT tongTien FROM DienNuoc WHERE maPhong = ? AND username = ? ORDER BY id DESC LIMIT 1", new String[]{maPhong, UserSession.currentUser});
-        if (cursor.moveToFirst()) {
-            tongTien = cursor.getDouble(cursor.getColumnIndexOrThrow("tongTien"));
-        }
-        cursor.close();
-        db.close();
-        return tongTien;
-    }
-
-    // --- SỔ THU CHI & BẢO TRÌ (LỢI NHUẬN RÒNG) ---
+    // --- SỔ THU CHI & BẢO TRÌ ---
     public boolean themThuChi(String loai, double soTien, String danhMuc, String ghiChu, String ngayGhi) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -579,6 +613,25 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         return result != -1;
     }
 
+    public List<String> getAllThuChiString() {
+        List<String> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM ThuChi WHERE username = ? ORDER BY id DESC", new String[]{UserSession.currentUser});
+        if (cursor.moveToFirst()) {
+            do {
+                String loai = cursor.getString(cursor.getColumnIndexOrThrow("loai"));
+                double soTien = cursor.getDouble(cursor.getColumnIndexOrThrow("soTien"));
+                String danhMuc = cursor.getString(cursor.getColumnIndexOrThrow("danhMuc"));
+                String ngayGhi = cursor.getString(cursor.getColumnIndexOrThrow("ngayGhi"));
+                String dau = loai.equals("CHI") ? "-" : "+";
+                list.add("[" + ngayGhi + "] " + danhMuc + ": " + dau + String.format(java.util.Locale.getDefault(), "%,.0f", soTien) + " VNĐ");
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return list;
+    }
+
     public double getTongChiPhi() {
         double tongChi = 0;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -589,37 +642,5 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return tongChi;
-    }
-
-    // --- QUẢN LÝ TÀI SẢN PHÒNG ---
-    public boolean themTaiSan(String maPhong, String tenTaiSan, String trangThai, double giaTri) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("maPhong", maPhong);
-        values.put("tenTaiSan", tenTaiSan);
-        values.put("trangThai", trangThai);
-        values.put("giaTri", giaTri);
-        values.put("username", UserSession.currentUser);
-        long result = db.insert("TaiSan", null, values);
-        db.close();
-        return result != -1;
-    }
-
-    public List<ModelTaiSan> getTaiSanByMaPhong(String maPhong) {
-        List<ModelTaiSan> list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM TaiSan WHERE maPhong = ? AND username = ?", new String[]{maPhong, UserSession.currentUser});
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-                String tenTS = cursor.getString(cursor.getColumnIndexOrThrow("tenTaiSan"));
-                String tt = cursor.getString(cursor.getColumnIndexOrThrow("trangThai"));
-                double giaTri = cursor.getDouble(cursor.getColumnIndexOrThrow("giaTri"));
-                list.add(new ModelTaiSan(id, maPhong, tenTS, tt, giaTri));
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        db.close();
-        return list;
     }
 }

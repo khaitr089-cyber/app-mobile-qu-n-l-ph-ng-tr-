@@ -64,6 +64,11 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         btnXoaNguoiThue = findViewById(R.id.btnXoaNguoiThue);
         btnLamMoiNguoiThue = findViewById(R.id.btnLamMoiNguoiThue);
         btnQuayLaiNguoiThue = findViewById(R.id.btnQuayLaiNguoiThue);
+        Button btnBaoCaoTamTru = findViewById(R.id.btnBaoCaoTamTru);
+        if (btnBaoCaoTamTru != null) {
+            btnBaoCaoTamTru.setOnClickListener(v -> hienThiDialogBaoCaoTamTru());
+        }
+
         recyclerDanhSachNguoiThue = findViewById(R.id.recyclerDanhSachNguoiThue);
         tvTongSoNguoiThue = findViewById(R.id.tvTongSoNguoiThue);
 
@@ -266,5 +271,39 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         edtNgayChuyenDi.setText("");
         edtHoTen.requestFocus();
         loadDanhSachPhongTrong();
+    }
+
+    private void hienThiDialogBaoCaoTamTru() {
+        List<ModelNguoiThue> list = db.getAllNguoiThue();
+        if (list == null || list.isEmpty()) {
+            Toast.makeText(this, "Chưa có danh sách người thuê!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("DANH SÁCH BÁO CÁO KHAI BÁO TẠM TRÚ CÔNG AN PHƯỜNG/XÃ\n");
+        sb.append("Ngày lập: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date())).append("\n\n");
+
+        int stt = 1;
+        for (ModelNguoiThue nt : list) {
+            sb.append(stt++).append(". ").append(nt.getHoTen()).append("\n")
+              .append("   • SĐT: ").append(nt.getSoDienThoai()).append("\n")
+              .append("   • CCCD: ").append(nt.getCccd()).append("\n")
+              .append("   • Quê quán: ").append(nt.getQueQuan()).append("\n")
+              .append("   • Phòng ở: ").append(nt.getPhongThue()).append("\n")
+              .append("   • Ngày chuyển vào: ").append(nt.getNgayChuyenVao()).append("\n\n");
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Khai Báo Tạm Trú Công An")
+                .setMessage(sb.toString())
+                .setPositiveButton("Gửi Zalo/SMS", (dialog, which) -> {
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                    intent.setType("text/plain");
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT, sb.toString());
+                    startActivity(android.content.Intent.createChooser(intent, "Gửi báo cáo tạm trú"));
+                })
+                .setNegativeButton("Đóng", null)
+                .show();
     }
 }

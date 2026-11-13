@@ -127,6 +127,23 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Lịch sử Thu Chi -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lịch Sử Thu Chi &amp; Sửa Chữa"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="8dp"/>
+
+        <ListView
+            android:id="@+id/lvThuChi"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="@android:color/white"
+            android:layout_marginBottom="16dp"/>
+
         <!-- Nút Quay lại -->
         <Button
             android:id="@+id/btnQuayLaiThuChi"

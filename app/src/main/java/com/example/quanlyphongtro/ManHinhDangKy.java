@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 public class ManHinhDangKy extends AppCompatActivity {
 
-    EditText txttaikhoan, txtmatkhau, txtxacnhanmatkhau;
+    EditText txttaikhoan, txtmatkhau, txthotenchunha, txtsdtchunha, txtcccdchunha;
     Button btndangki, btnquaylai;
     QuanLyCoSoDuLieu db;
 
@@ -20,7 +20,10 @@ public class ManHinhDangKy extends AppCompatActivity {
 
         txttaikhoan = findViewById(R.id.txttaikhoan);
         txtmatkhau = findViewById(R.id.txtmatkhau);
-        txtxacnhanmatkhau = findViewById(R.id.txtxacnhanmatkhau);
+        txthotenchunha = findViewById(R.id.txthotenchunha);
+        txtsdtchunha = findViewById(R.id.txtsdtchunha);
+        txtcccdchunha = findViewById(R.id.txtcccdchunha);
+
         btndangki = findViewById(R.id.btndangki);
         btnquaylai = findViewById(R.id.btnquaylai);
 
@@ -29,16 +32,16 @@ public class ManHinhDangKy extends AppCompatActivity {
         btndangki.setOnClickListener(v -> {
             String taiKhoan = txttaikhoan.getText().toString().trim();
             String matKhau = txtmatkhau.getText().toString().trim();
-            String xacNhan = txtxacnhanmatkhau.getText().toString().trim();
+            String hoTen = txthotenchunha.getText().toString().trim();
+            String sdt = txtsdtchunha.getText().toString().trim();
+            String cccd = txtcccdchunha.getText().toString().trim();
 
-            if (taiKhoan.isEmpty() || matKhau.isEmpty() || xacNhan.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-            } else if (!matKhau.equals(xacNhan)) {
-                Toast.makeText(this, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show();
+            if (taiKhoan.isEmpty() || matKhau.isEmpty() || hoTen.isEmpty() || sdt.isEmpty() || cccd.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin Chủ nhà!", Toast.LENGTH_SHORT).show();
             } else {
-                boolean success = db.dangky(taiKhoan, matKhau);
+                boolean success = db.dangkyFull(taiKhoan, matKhau, hoTen, sdt, cccd);
                 if (success) {
-                    Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đăng ký thành công thông tin Chủ trọ!", Toast.LENGTH_SHORT).show();
                     finish(); // Quay lại màn hình đăng nhập
                 } else {
                     Toast.makeText(this, "Tài khoản đã tồn tại hoặc lỗi đăng ký", Toast.LENGTH_SHORT).show();

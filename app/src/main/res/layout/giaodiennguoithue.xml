@@ -233,7 +233,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:weightSum="2">
+                    android:weightSum="2"
+                    android:layout_marginBottom="8dp">
 
                     <Button
                         android:id="@+id/btnXoaNguoiThue"
@@ -253,6 +254,16 @@
                         android:backgroundTint="@android:color/darker_gray"
                         android:layout_marginStart="4dp"/>
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnBaoCaoTamTru"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="📋 XUẤT BÁO CÁO TẠM TRÚ CÔNG AN"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#0288D1"
+                    android:layout_marginTop="8dp"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

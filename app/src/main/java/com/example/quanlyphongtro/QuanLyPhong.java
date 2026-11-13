@@ -12,6 +12,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.example.quanlyphongtro.adapter.PhongAdapter;
@@ -66,6 +67,15 @@ public class QuanLyPhong extends AppCompatActivity {
 
         // Load danh sách phòng từ SQLite
         loadDanhSachPhong("");
+
+        // Nút lọc phòng nhanh
+        Button btnLocTatCa = findViewById(R.id.btnLocTatCa);
+        Button btnLocPhongTrong = findViewById(R.id.btnLocPhongTrong);
+        Button btnLocDangThue = findViewById(R.id.btnLocDangThue);
+
+        if (btnLocTatCa != null) btnLocTatCa.setOnClickListener(v -> loadDanhSachPhong(""));
+        if (btnLocPhongTrong != null) btnLocPhongTrong.setOnClickListener(v -> loadPhongTheoTrangThai("trống"));
+        if (btnLocDangThue != null) btnLocDangThue.setOnClickListener(v -> loadPhongTheoTrangThai("đang thuê"));
 
         // --- BƯỚC 2: TÍNH NĂNG TÌM KIẾM PHÒNG (F05) ---
         edtTimKiemPhong.addTextChangedListener(new TextWatcher() {
@@ -170,6 +180,24 @@ public class QuanLyPhong extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    // --- HÀM TẢI LỌC THEO TRẠNG THÁI ---
+    private void loadPhongTheoTrangThai(String tt) {
+        listPhong = db.getPhongByTrangThai(tt);
+        if (listPhong == null) listPhong = new ArrayList<>();
+        phongAdapter = new PhongAdapter(this, listPhong, phong -> {
+            selectedMaPhong = phong.getMaPhong();
+            edtMaPhong.setText(phong.getMaPhong());
+            edtMaPhong.setEnabled(false);
+            dropdownLoaiPhong.setText(phong.getTenPhong(), false);
+            edtGiaThue.setText(phong.getGiaThue());
+            edtTang.setText(phong.getTang());
+            edtDienTich.setText(phong.getDienTich());
+            dropdownTrangThai.setText(phong.getTrangThai(), false);
+        });
+        recyclerDanhSachPhong.setLayoutManager(new LinearLayoutManager(this));
+        recyclerDanhSachPhong.setAdapter(phongAdapter);
     }
 
     // --- HÀM TẢI VÀ TÌM KIẾM DANH SÁCH PHÒNG ---
