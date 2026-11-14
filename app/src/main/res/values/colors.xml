@@ -41,6 +41,8 @@
     <!-- Divider / Border -->
     <color name="divider">#E8EAFF</color>
     <color name="border">#C5CAE9</color>
+    <color name="app_outline_strong">#C5CAE9</color>
+    <color name="app_text_secondary">#5C5F7A</color>
 
     <!-- Legacy compat -->
     <color name="light_blue_600">#FF039BE5</color>

@@ -27,19 +27,24 @@ public class ManHinhDangNhap extends AppCompatActivity {
         db = new QuanLyCoSoDuLieu(this);
 
         btndangnhap.setOnClickListener(v -> {
-            String taiKhoan = txttaikhoan.getText().toString().trim();
-            String matKhau = txtmatkhau.getText().toString().trim();
+            try {
+                String taiKhoan = txttaikhoan.getText() != null ? txttaikhoan.getText().toString().trim() : "";
+                String matKhau = txtmatkhau.getText() != null ? txtmatkhau.getText().toString().trim() : "";
 
-            if (db.dangnhap(taiKhoan, matKhau)) {
-                // Lưu tên tài khoản hiện tại vào Session và SharedPreferences để giữ phiên làm việc
-                UserSession.saveUser(this, taiKhoan);
+                if (db.dangnhap(taiKhoan, matKhau)) {
+                    try {
+                        UserSession.saveUser(this, taiKhoan);
+                    } catch (Exception ignored) {}
 
-                Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent(ManHinhDangNhap.this, ManHinhChinh.class);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ManHinhDangNhap.this, ManHinhChinh.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Lỗi đăng nhập: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
 
