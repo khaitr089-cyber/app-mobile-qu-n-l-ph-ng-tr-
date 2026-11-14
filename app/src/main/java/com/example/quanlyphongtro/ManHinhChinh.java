@@ -158,6 +158,9 @@ public class ManHinhChinh extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (db != null) {
+            db.kiemTraVaCapNhatHopDongQuaHan();
+        }
         capNhatThongKeNhanh();
     }
 

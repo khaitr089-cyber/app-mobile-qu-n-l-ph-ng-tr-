@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -654,6 +655,65 @@ public class QuanLyCoSoDuLieu extends SQLiteOpenHelper {
         long result = db.insert("HopDong", null, values);
         db.close();
         return result != -1;
+    }
+
+    // --- THUẬT TOÁN 1: CHỐNG CHỒNG CHÉO LỊCH THUÊ PHÒNG ---
+    public boolean kiemtraTrungLichHopDong(String maPhong, String ngayBatDauStr, String ngayKetThucStr) {
+        List<ModelHopDong> danhSachHD = getAllHopDong();
+        if (danhSachHD == null || danhSachHD.isEmpty()) return false;
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        try {
+            Date startNew = sdf.parse(ngayBatDauStr);
+            Date endNew = sdf.parse(ngayKetThucStr);
+            if (startNew == null || endNew == null) return false;
+
+            String maClean = maPhong.contains(" ") ? maPhong.split(" ")[0].trim() : maPhong.trim();
+
+            for (ModelHopDong hd : danhSachHD) {
+                if (hd != null && hd.getMaPhong() != null && hd.getMaPhong().equalsIgnoreCase(maClean)) {
+                    if ("Đang hiệu lực".equalsIgnoreCase(hd.getTrangThai())) {
+                        Date startExisting = sdf.parse(hd.getNgayBatDau());
+                        Date endExisting = sdf.parse(hd.getNgayKetThuc());
+                        if (startExisting != null && endExisting != null) {
+                            // Công thức chống chồng chéo: StartA <= EndB AND EndA >= StartB
+                            if (!startNew.after(endExisting) && !endNew.before(startExisting)) {
+                                return true; // Trùng lịch!
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+    // --- THUẬT TOÁN 2: TỰ ĐỘNG CHUYỂN ĐỔI TRẠNG THÁI HỢP ĐỒNG & PHÒNG QUÁ HẠN ---
+    public void kiemTraVaCapNhatHopDongQuaHan() {
+        List<ModelHopDong> danhSachHD = getAllHopDong();
+        if (danhSachHD == null || danhSachHD.isEmpty()) return;
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        Date today = new Date();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        for (ModelHopDong hd : danhSachHD) {
+            if (hd != null && "Đang hiệu lực".equalsIgnoreCase(hd.getTrangThai())) {
+                try {
+                    Date ngayKT = sdf.parse(hd.getNgayKetThuc());
+                    if (ngayKT != null && ngayKT.before(today)) {
+                        ContentValues values = new ContentValues();
+                        values.put("trangThai", "Hết hạn");
+                        db.update("HopDong", values, "maHopDong = ? AND username = ?", new String[]{hd.getMaHopDong(), getUser()});
+
+                        updateTrangThaiPhong(hd.getMaPhong(), "Còn trống");
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        db.close();
     }
 
     public List<ModelHopDong> getAllHopDong() {

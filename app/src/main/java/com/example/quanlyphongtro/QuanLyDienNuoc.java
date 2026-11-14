@@ -140,7 +140,8 @@ public class QuanLyDienNuoc extends AppCompatActivity {
             double soDienTieuThu = laySoDienTieuThu();
             double soNuocTieuThu = laySoNuocTieuThu();
             double tienDichVu = chuyenDinhDangSo(edtTienDichVuKhac.getText().toString().trim());
-            double tongTien = (soDienTieuThu * donGiaDien) + (soNuocTieuThu * donGiaNuoc) + tienDichVu;
+            double tienDien = tinhTienDienBacThang(soDienTieuThu);
+            double tongTien = tienDien + (soNuocTieuThu * donGiaNuoc) + tienDichVu;
 
             String maClean = phong.split(" ")[0].trim();
 
@@ -198,12 +199,25 @@ public class QuanLyDienNuoc extends AppCompatActivity {
         }
     }
 
+    private double tinhTienDienBacThang(double soDien) {
+        double thanhTien = 0;
+        if (soDien <= 50) {
+            thanhTien = soDien * 1800;
+        } else if (soDien <= 100) {
+            thanhTien = (50 * 1800) + ((soDien - 50) * 2300);
+        } else {
+            thanhTien = (50 * 1800) + (50 * 2300) + ((soDien - 100) * 3100);
+        }
+        return thanhTien;
+    }
+
     private void tinhTongTienTamTinh() {
         double soDien = laySoDienTieuThu();
         double soNuoc = laySoNuocTieuThu();
         double tienDichVu = chuyenDinhDangSo(edtTienDichVuKhac.getText().toString().trim());
+        double tienDien = tinhTienDienBacThang(soDien);
 
-        double tongTien = (soDien * donGiaDien) + (soNuoc * donGiaNuoc) + tienDichVu;
+        double tongTien = tienDien + (soNuoc * donGiaNuoc) + tienDichVu;
         tvTongTienTinhToan.setText(String.format(Locale.getDefault(), "Tổng tiền tạm tính: %,.0f VNĐ", tongTien));
     }
 

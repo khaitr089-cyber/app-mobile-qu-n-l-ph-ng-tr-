@@ -1,10 +1,13 @@
 package com.example.quanlyphongtro;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,8 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +39,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
     // Khai báo các thành phần giao diện người thuê
     TextInputEditText edtHoTen, edtSoDienThoai, edtCCCD, edtNgaySinh, edtQueQuan, edtNgayChuyenVao, edtNgayChuyenDi, edtSoLuongNguoi, edtTimKiem;
     AutoCompleteTextView dropdownPhongThue;
-    Button btnThemNguoiThue, btnSuaNguoiThue, btnXoaNguoiThue, btnLamMoiNguoiThue, btnQuayLaiNguoiThue;
+    Button btnThemNguoiThue, btnSuaNguoiThue, btnXoaNguoiThue, btnLamMoiNguoiThue, btnQuayLaiNguoiThue, btnBaoCaoTamTru;
     RecyclerView recyclerDanhSachNguoiThue;
     TextView tvTongSoNguoiThue;
 
@@ -43,9 +48,10 @@ public class QuanLyNguoiThue extends AppCompatActivity {
     List<ModelNguoiThue> listNguoiThue;
     NguoiThueAdapter nguoiThueAdapter;
 
+    // Biến ghi nhớ CCCD đang được chọn để Sửa hoặc Xóa chính xác đối tượng
     private String selectedCccd = "";
 
-    // Executor & Handler
+    // Executor cho thread background
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -54,9 +60,10 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.giaodiennguoithue);
 
+        // Khởi tạo database
         db = new QuanLyCoSoDuLieu(this);
 
-        // --- BƯỚC 1: ÁNH XẠ CÁC VIEW ---
+        // --- BƯỚC 1: ÁNH XẠ CÁC VIEW TỪ XML SANG JAVA ---
         edtHoTen = findViewById(R.id.edtHoTen);
         edtSoDienThoai = findViewById(R.id.edtSoDienThoai);
         edtCCCD = findViewById(R.id.edtCCCD);
@@ -73,24 +80,22 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         btnXoaNguoiThue = findViewById(R.id.btnXoaNguoiThue);
         btnLamMoiNguoiThue = findViewById(R.id.btnLamMoiNguoiThue);
         btnQuayLaiNguoiThue = findViewById(R.id.btnQuayLaiNguoiThue);
-
-        Button btnBaoCaoTamTru = findViewById(R.id.btnBaoCaoTamTru);
-        if (btnBaoCaoTamTru != null) {
-            btnBaoCaoTamTru.setOnClickListener(v -> hienThiDialogBaoCaoTamTru());
-        }
-
+        btnBaoCaoTamTru = findViewById(R.id.btnBaoCaoTamTru);
         recyclerDanhSachNguoiThue = findViewById(R.id.recyclerDanhSachNguoiThue);
         tvTongSoNguoiThue = findViewById(R.id.tvTongSoNguoiThue);
 
-        // --- BƯỚC 2: CHỌN LỊCH ---
+        // --- BƯỚC 2: THIẾT LẬP CHỌN LỊCH (DatePickerDialog) CHO CÁC Ô NGÀY THÁNG ---
         edtNgaySinh.setOnClickListener(v -> showDatePickerDialog(edtNgaySinh));
         edtNgayChuyenVao.setOnClickListener(v -> showDatePickerDialog(edtNgayChuyenVao));
         edtNgayChuyenDi.setOnClickListener(v -> showDatePickerDialog(edtNgayChuyenDi));
 
+        // Nạp danh sách phòng còn trống vào Dropdown chọn phòng
         loadDanhSachPhongTrong();
+
+        // Tải danh sách người thuê từ SQLite lên màn hình
         loadDanhSachNguoiThue();
 
-        // --- DEBOUNCE 250MS TÌM KIẾM ---
+        // Tìm kiếm realtime với debounce
         if (edtTimKiem != null) {
             Handler debounceHandler = new Handler(Looper.getMainLooper());
             Runnable searchRunnable = () -> {
@@ -109,7 +114,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
             });
         }
 
-        // --- BƯỚC 3: THÊM NGƯỜI THUÊ ---
+        // --- BƯỚC 3: THÊM NGƯỜI THUÊ (Kiểm tra tuổi >= 18 và ngày chuyển vào <= chuyển đi) ---
         btnThemNguoiThue.setOnClickListener(v -> {
             String hoTen = edtHoTen.getText() != null ? edtHoTen.getText().toString().trim() : "";
             String sdt = edtSoDienThoai.getText() != null ? edtSoDienThoai.getText().toString().trim() : "";
@@ -125,6 +130,10 @@ public class QuanLyNguoiThue extends AppCompatActivity {
 
             if (hoTen.isEmpty() || sdt.isEmpty() || cccd.isEmpty() || phongThue.isEmpty() || queQuan.isEmpty() || phongThue.contains("Không có")) {
                 Toast.makeText(QuanLyNguoiThue.this, "Vui lòng nhập đầy đủ thông tin hoặc chọn phòng trống!", Toast.LENGTH_SHORT).show();
+            } else if (!ngaySinh.isEmpty() && !kiemTraTuoi(ngaySinh)) {
+                Toast.makeText(QuanLyNguoiThue.this, "Người thuê phải từ đủ 18 tuổi trở lên!", Toast.LENGTH_SHORT).show();
+            } else if (!kiemTraNgayChuyen(ngayVao, ngayDi)) {
+                Toast.makeText(QuanLyNguoiThue.this, "Ngày chuyển vào không được lớn hơn ngày chuyển đi!", Toast.LENGTH_SHORT).show();
             } else {
                 String finalSoLuong = soLuong;
                 executor.execute(() -> {
@@ -164,6 +173,17 @@ public class QuanLyNguoiThue extends AppCompatActivity {
             String ngayDi = edtNgayChuyenDi.getText() != null ? edtNgayChuyenDi.getText().toString().trim() : "";
 
             if (soLuong.isEmpty()) soLuong = "1";
+
+            if (!ngaySinh.isEmpty() && !kiemTraTuoi(ngaySinh)) {
+                Toast.makeText(QuanLyNguoiThue.this, "Người thuê phải từ đủ 18 tuổi trở lên!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!kiemTraNgayChuyen(ngayVao, ngayDi)) {
+                Toast.makeText(QuanLyNguoiThue.this, "Ngày chuyển vào không được lớn hơn ngày chuyển đi!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String finalSoLuong = soLuong;
 
             executor.execute(() -> {
@@ -190,9 +210,11 @@ public class QuanLyNguoiThue extends AppCompatActivity {
 
             executor.execute(() -> {
                 boolean check = db.xoaNguoiThue(selectedCccd);
-                if (check && !phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
-                    String maPhong = phongThueHienTai.contains(" (") ? phongThueHienTai.split(" \\(")[0].trim() : phongThueHienTai.trim();
-                    db.updateTrangThaiPhong(maPhong, "Còn trống");
+                if (check) {
+                    if (!phongThueHienTai.isEmpty() && !phongThueHienTai.contains("Không có")) {
+                        String maPhong = phongThueHienTai.contains(" (") ? phongThueHienTai.split(" \\(")[0].trim() : phongThueHienTai.trim();
+                        db.updateTrangThaiPhong(maPhong, "Còn trống");
+                    }
                 }
                 mainHandler.post(() -> {
                     if (check) {
@@ -207,11 +229,60 @@ public class QuanLyNguoiThue extends AppCompatActivity {
             });
         });
 
-        // --- 6. LÀM MỚI FORM & QUAY LẠI ---
+        // --- BƯỚC 6: LÀM MỚI FORM ---
         btnLamMoiNguoiThue.setOnClickListener(v -> lamMoiForm());
+
+        // --- BƯỚC 7: NÚT BÁO CÁO TẠM TRÚ / GỬI ZALO ---
+        if (btnBaoCaoTamTru != null) {
+            btnBaoCaoTamTru.setOnClickListener(v -> hienThiDialogBaoCaoTamTru());
+        }
+
+        // --- BƯỚC 8: QUAY LẠI MÀN HÌNH CHÍNH ---
         btnQuayLaiNguoiThue.setOnClickListener(v -> finish());
     }
 
+    // --- HÀM KIỂM TRA ĐỘ TUỔI (>= 18 tuổi) ---
+    private boolean kiemTraTuoi(String ngaySinhStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date ngaySinh = sdf.parse(ngaySinhStr);
+            if (ngaySinh == null) return false;
+
+            Calendar dob = Calendar.getInstance();
+            dob.setTime(ngaySinh);
+
+            Calendar today = Calendar.getInstance();
+            int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+
+            if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) {
+                age--;
+            }
+
+            return age >= 18;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    // --- HÀM KIỂM TRA NGÀY CHUYỂN VÀO / CHUYỂN ĐI ---
+    private boolean kiemTraNgayChuyen(String ngayVaoStr, String ngayDiStr) {
+        if (ngayVaoStr == null || ngayVaoStr.isEmpty() || ngayDiStr == null || ngayDiStr.isEmpty()) {
+            return true;
+        }
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date ngayVao = sdf.parse(ngayVaoStr);
+            Date ngayDi = sdf.parse(ngayDiStr);
+            if (ngayVao != null && ngayDi != null) {
+                return !ngayVao.after(ngayDi); // true nếu ngayVao <= ngayDi
+            }
+        } catch (Exception e) {
+            return true;
+        }
+        return true;
+    }
+
+    // --- HÀM HIỂN THỊ HỘP THOẠI CHỌN LỊCH (DatePickerDialog) ---
     private void showDatePickerDialog(TextInputEditText edt) {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -226,54 +297,62 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+    // --- HÀM NẠP DANH SÁCH PHÒNG CÒN TRỐNG VÀO DROPDOWN ---
     private void loadDanhSachPhongTrong() {
         executor.execute(() -> {
             List<ModelPhong> allPhong = db.getAllPhong();
             List<String> phongConTrong = new ArrayList<>();
+
             if (allPhong != null) {
                 for (ModelPhong p : allPhong) {
-                    if (p.getTrangThai() != null && p.getTrangThai().toLowerCase().contains("trống")) {
+                    if (p != null && p.getTrangThai() != null && p.getTrangThai().toLowerCase().contains("trống")) {
                         phongConTrong.add(p.getMaPhong() + " (" + p.getTenPhong() + ")");
                     }
                 }
             }
+
             if (phongConTrong.isEmpty()) {
                 phongConTrong.add("Không có phòng trống");
             }
+
             mainHandler.post(() -> {
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, phongConTrong);
-                dropdownPhongThue.setAdapter(adapter);
+                if (dropdownPhongThue != null) dropdownPhongThue.setAdapter(adapter);
             });
         });
     }
 
-    private void timKiemNguoiThue(String kw) {
-        executor.execute(() -> {
-            List<ModelNguoiThue> all = db.getAllNguoiThue();
-            List<ModelNguoiThue> filtered = new ArrayList<>();
-            if (all != null) {
-                for (ModelNguoiThue nt : all) {
-                    if (kw.isEmpty() || (nt.getHoTen() != null && nt.getHoTen().toLowerCase().contains(kw.toLowerCase())) ||
-                        (nt.getSoDienThoai() != null && nt.getSoDienThoai().contains(kw))) {
-                        filtered.add(nt);
-                    }
-                }
-            }
-            mainHandler.post(() -> hienThiDanhSachAdapter(filtered));
-        });
-    }
-
+    // --- HÀM TẢI DANH SÁCH NGƯỜI THUÊ TỪ SQLITE LÊN RECYCLERVIEW ---
     private void loadDanhSachNguoiThue() {
         executor.execute(() -> {
             listNguoiThue = db.getAllNguoiThue();
-            if (listNguoiThue == null) listNguoiThue = new ArrayList<>();
             mainHandler.post(() -> {
-                int tongSoNguoi = listNguoiThue.size();
+                int tongSoNguoi = listNguoiThue != null ? listNguoiThue.size() : 0;
                 if (tvTongSoNguoiThue != null) {
                     tvTongSoNguoiThue.setText("Tổng số hồ sơ người thuê: " + tongSoNguoi);
                 }
                 hienThiDanhSachAdapter(listNguoiThue);
             });
+        });
+    }
+
+    // --- HÀM TÌM KIẾM NGƯỜI THUÊ ---
+    private void timKiemNguoiThue(String tuKhoa) {
+        String tuKhoaChuan = tuKhoa.toLowerCase().trim();
+        executor.execute(() -> {
+            List<ModelNguoiThue> danhSachKetQua = new ArrayList<>();
+            List<ModelNguoiThue> all = db.getAllNguoiThue();
+            if (all != null) {
+                for (ModelNguoiThue item : all) {
+                    if (item != null && (
+                        (item.getHoTen() != null && item.getHoTen().toLowerCase().contains(tuKhoaChuan)) ||
+                        (item.getSoDienThoai() != null && item.getSoDienThoai().contains(tuKhoaChuan))
+                    )) {
+                        danhSachKetQua.add(item);
+                    }
+                }
+            }
+            mainHandler.post(() -> hienThiDanhSachAdapter(danhSachKetQua));
         });
     }
 
@@ -294,6 +373,7 @@ public class QuanLyNguoiThue extends AppCompatActivity {
         recyclerDanhSachNguoiThue.setAdapter(nguoiThueAdapter);
     }
 
+    // --- HÀM LÀM TRẮNG FORM ---
     private void lamMoiForm() {
         selectedCccd = "";
         if (edtHoTen != null) edtHoTen.setText("");
@@ -319,27 +399,24 @@ public class QuanLyNguoiThue extends AppCompatActivity {
                 }
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("DANH SÁCH BÁO CÁO KHAI BÁO TẠM TRÚ CÔNG AN PHƯỜNG/XÃ\n");
-                sb.append("Ngày lập: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new java.util.Date())).append("\n\n");
-
-                int stt = 1;
+                sb.append("📋 DANH SÁCH KHÁCH THUÊ TRỌ\n\n");
                 for (ModelNguoiThue nt : list) {
-                    sb.append(stt++).append(". ").append(nt.getHoTen()).append("\n")
-                      .append("   • SĐT: ").append(nt.getSoDienThoai()).append("\n")
-                      .append("   • CCCD: ").append(nt.getCccd()).append("\n")
-                      .append("   • Quê quán: ").append(nt.getQueQuan()).append("\n")
-                      .append("   • Phòng ở: ").append(nt.getPhongThue()).append("\n")
-                      .append("   • Ngày chuyển vào: ").append(nt.getNgayChuyenVao()).append("\n\n");
+                    sb.append("• Họ tên: ").append(nt.getHoTen())
+                      .append("\n  SĐT: ").append(nt.getSoDienThoai())
+                      .append("\n  CCCD: ").append(nt.getCccd())
+                      .append("\n  Phòng: ").append(nt.getPhongThue())
+                      .append("\n  Ngày vào: ").append(nt.getNgayChuyenVao())
+                      .append("\n--------------------------\n");
                 }
 
-                new androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Khai Báo Tạm Trú Công An")
+                new AlertDialog.Builder(this)
+                        .setTitle("Báo cáo / Gửi Zalo tạm trú")
                         .setMessage(sb.toString())
-                        .setPositiveButton("Gửi Zalo/SMS", (dialog, which) -> {
-                            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
-                            intent.setType("text/plain");
-                            intent.putExtra(android.content.Intent.EXTRA_TEXT, sb.toString());
-                            startActivity(android.content.Intent.createChooser(intent, "Gửi báo cáo tạm trú"));
+                        .setPositiveButton("📲 Gửi Zalo/SMS", (dialog, which) -> {
+                            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                            shareIntent.setType("text/plain");
+                            shareIntent.putExtra(Intent.EXTRA_TEXT, sb.toString());
+                            startActivity(Intent.createChooser(shareIntent, "Gửi báo cáo qua Zalo/SMS"));
                         })
                         .setNegativeButton("Đóng", null)
                         .show();

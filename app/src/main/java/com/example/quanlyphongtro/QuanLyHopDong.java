@@ -187,6 +187,10 @@ public class QuanLyHopDong extends AppCompatActivity {
                             }
 
                             String maPhong = phongChon.split(" ")[0].trim();
+                            if (dbHelper.kiemtraTrungLichHopDong(maPhong, ngayBD, ngayKT)) {
+                                Toast.makeText(QuanLyHopDong.this, "Lỗi: Phòng này đã có hợp đồng hiệu lực trong khoảng thời gian này!", Toast.LENGTH_LONG).show();
+                                return;
+                            }
                             double giaThue = 0;
                             double tienCoc = 0;
                             try {
